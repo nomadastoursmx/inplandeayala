@@ -132,7 +132,7 @@
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             padding: 20px;
             background: rgba(0, 242, 254, 0.05);
@@ -268,6 +268,14 @@
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
         }
 
+        .template-btn {
+            background: linear-gradient(135deg, #ff7b7b 0%, #ff6b6b 100%);
+        }
+
+        .template-btn:hover {
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.5em;
@@ -317,7 +325,7 @@
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button class="export-btn" onclick="exportProgress()">💾 Exportar Progreso</button>
-                    <button class="export-btn" onclick="downloadTemplate()" style="background: linear-gradient(135deg, #ff7b7b 0%, #ff6b6b 100%);">📄 Descargar Plantilla</button>
+                    <button class="export-btn template-btn" onclick="downloadTemplate()">📄 Descargar Plantilla TXT</button>
                 </div>
             </div>
 
@@ -337,6 +345,10 @@
             <div class="stat-card">
                 <div class="stat-number" id="totalItems">0</div>
                 <div class="stat-label">Total Productos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalExistencias">0</div>
+                <div class="stat-label">Total Existencias</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="checkedItems">0</div>
@@ -542,8 +554,15 @@
             const checked = inventoryData.filter(item => item.checked).length;
             const pending = total - checked;
             const progress = total > 0 ? Math.round((checked / total) * 100) : 0;
+            
+            // Calcular total de existencias
+            const totalExistencias = inventoryData.reduce((sum, item) => {
+                const existencias = parseInt(item.existencias) || 0;
+                return sum + existencias;
+            }, 0);
 
             document.getElementById('totalItems').textContent = total;
+            document.getElementById('totalExistencias').textContent = totalExistencias.toLocaleString();
             document.getElementById('checkedItems').textContent = checked;
             document.getElementById('pendingItems').textContent = pending;
             document.getElementById('progressPercent').textContent = progress + '%';
@@ -582,16 +601,47 @@
         }
 
         function downloadTemplate() {
-            const template = `CODIGO,RIN,ESTADO,DESCRIPCION,NOMBRE_TIENDA,EXISTENCIAS,COMENTARIO
+            const template = `PLANTILLA DE INVENTARIO
+========================
+
+Formato del archivo CSV:
+CODIGO,RIN,ESTADO,DESCRIPCION,NOMBRE_TIENDA,EXISTENCIAS,COMENTARIO
+
+Ejemplo de datos:
 P001,12345,ACTIVO,Producto de ejemplo 1,Tienda Principal,10,
 P002,12346,ACTIVO,Producto de ejemplo 2,Tienda Principal,5,Revisar stock
-P003,12347,INACTIVO,Producto de ejemplo 3,Sucursal Norte,0,Descontinuado`;
+P003,12347,INACTIVO,Producto de ejemplo 3,Sucursal Norte,0,Descontinuado
+P004,12348,ACTIVO,Producto de ejemplo 4,Sucursal Sur,25,Stock completo
+P005,12349,ACTIVO,Producto de ejemplo 5,Tienda Principal,8,Nuevo ingreso
 
-            const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+INSTRUCCIONES:
+==============
+
+1. Crear archivo CSV con el formato mostrado arriba
+2. Cada fila debe tener los 7 campos separados por comas
+3. Si un campo contiene comas, enciérralo entre comillas
+4. El campo COMENTARIO puede estar vacío
+5. EXISTENCIAS debe ser un número
+6. Guardar el archivo con extensión .csv
+7. Cargar el archivo usando el botón "Cargar archivo CSV"
+
+CAMPOS OBLIGATORIOS:
+===================
+- CODIGO: Código único del producto
+- RIN: Número de identificación
+- ESTADO: Estado del producto (ACTIVO/INACTIVO)
+- DESCRIPCION: Descripción del producto
+- NOMBRE_TIENDA: Nombre de la tienda o sucursal
+- EXISTENCIAS: Cantidad disponible (número)
+- COMENTARIO: Observaciones (opcional)
+
+¡Guarda este archivo como referencia para crear tu inventario!`;
+
+            const blob = new Blob([template], { type: 'text/plain;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', 'plantilla_inventario.csv');
+            link.setAttribute('download', 'plantilla_inventario.txt');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
