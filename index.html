@@ -324,7 +324,7 @@
                     </label>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="export-btn" onclick="exportProgress()">📄 Exportar Progreso TXT</button>
+                    <button class="export-btn" onclick="exportProgress()">📊 Exportar Progreso Excel</button>
                     <button class="export-btn template-btn" onclick="downloadTemplate()">📊 Descargar Plantilla Excel</button>
                 </div>
             </div>
@@ -574,81 +574,73 @@
                 return;
             }
 
-            // Crear tabla en formato texto
+            // Preparar datos para Excel
             const headers = ['CODIGO', 'RIN', 'ESTADO', 'DESCRIPCION', 'NOMBRE_TIENDA', 'EXISTENCIAS', 'COMENTARIO', 'VERIFICADO'];
             
-            // Calcular anchos de columna basado en el contenido
-            const columnWidths = headers.map((header, index) => {
-                const headerLength = header.length;
-                const maxContentLength = Math.max(...inventoryData.map(item => {
-                    const values = [
-                        item.codigo,
-                        item.rin,
-                        item.estado,
-                        item.descripcion,
-                        item.nombreTienda,
-                        item.existencias,
-                        item.comentario,
-                        item.checked ? 'SI' : 'NO'
-                    ];
-                    return values[index] ? values[index].toString().length : 0;
-                }));
-                return Math.max(headerLength, maxContentLength, 8); // Mínimo 8 caracteres
-            });
+            // Calcular estadísticas
+            const totalItems = inventoryData.length;
+            const totalExistencias = inventoryData.reduce((sum, item) => sum + (parseInt(item.existencias) || 0), 0);
+            const checkedItems = inventoryData.filter(item => item.checked).length;
+            const pendingItems = totalItems - checkedItems;
+            const progress = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+            const withComments = inventoryData.filter(item => item.comentario && item.comentario.trim() !== '').length;
 
-            // Función para formatear fila con espacios
-            const formatRow = (values) => {
-                return values.map((value, index) => {
-                    const strValue = value.toString();
-                    const width = columnWidths[index];
-                    return strValue.padEnd(width);
-                }).join(' | ');
-            };
+            // Crear contenido CSV para Excel con estadísticas
+            let csvContent = '';
+            
+            // Agregar encabezado con estadísticas
+            csvContent += '"REPORTE DE PROGRESO DE INVENTARIO"\n';
+            csvContent += '"====================================="\n';
+            csvContent += '"\n';
+            csvContent += `"Fecha de exportación:","${new Date().toLocaleString('es-ES')}"\n`;
+            csvContent += `"Total de productos:","${totalItems}"\n`;
+            csvContent += `"Total de existencias:","${totalExistencias.toLocaleString()}"\n`;
+            csvContent += `"Productos verificados:","${checkedItems}"\n`;
+            csvContent += `"Productos pendientes:","${pendingItems}"\n`;
+            csvContent += `"Progreso:","${progress}%"\n`;
+            csvContent += `"Productos con comentarios:","${withComments}"\n`;
+            csvContent += '"\n';
+            csvContent += '"=== DETALLE DEL INVENTARIO ==="\n';
+            csvContent += '"\n';
 
-            // Crear separador
-            const separator = columnWidths.map(width => '-'.repeat(width)).join('-+-');
+            // Agregar encabezados de tabla
+            csvContent += headers.map(header => `"${header}"`).join(',') + '\n';
 
-            // Construir tabla
-            const tableContent = [
-                'REPORTE DE PROGRESO DE INVENTARIO',
-                '===================================',
-                '',
-                `Fecha de exportación: ${new Date().toLocaleString('es-ES')}`,
-                `Total de productos: ${inventoryData.length}`,
-                `Total de existencias: ${inventoryData.reduce((sum, item) => sum + (parseInt(item.existencias) || 0), 0).toLocaleString()}`,
-                `Productos verificados: ${inventoryData.filter(item => item.checked).length}`,
-                `Progreso: ${inventoryData.length > 0 ? Math.round((inventoryData.filter(item => item.checked).length / inventoryData.length) * 100) : 0}%`,
-                '',
-                '='.repeat(separator.length),
-                formatRow(headers),
-                separator,
-                ...inventoryData.map(item => formatRow([
+            // Agregar datos
+            inventoryData.forEach(item => {
+                const row = [
                     item.codigo,
                     item.rin,
                     item.estado,
                     item.descripcion,
                     item.nombreTienda,
                     item.existencias,
-                    item.comentario || '-',
+                    item.comentario || '',
                     item.checked ? 'SI' : 'NO'
-                ])),
-                '='.repeat(separator.length),
-                '',
-                'RESUMEN:',
-                `- Total de productos: ${inventoryData.length}`,
-                `- Productos verificados: ${inventoryData.filter(item => item.checked).length}`,
-                `- Productos pendientes: ${inventoryData.filter(item => !item.checked).length}`,
-                `- Total de existencias: ${inventoryData.reduce((sum, item) => sum + (parseInt(item.existencias) || 0), 0).toLocaleString()}`,
-                `- Productos con comentarios: ${inventoryData.filter(item => item.comentario && item.comentario.trim() !== '').length}`,
-                '',
-                'Generado por Sistema de Inventario'
-            ].join('\n');
+                ];
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
 
-            const blob = new Blob([tableContent], { type: 'text/plain;charset=utf-8;' });
+            // Agregar resumen final
+            csvContent += '"\n';
+            csvContent += '"=== RESUMEN FINAL ==="\n';
+            csvContent += `"Total de productos:","${totalItems}"\n`;
+            csvContent += `"Verificados:","${checkedItems}"\n`;
+            csvContent += `"Pendientes:","${pendingItems}"\n`;
+            csvContent += `"Total existencias:","${totalExistencias.toLocaleString()}"\n`;
+            csvContent += `"Con comentarios:","${withComments}"\n`;
+            csvContent += `"Porcentaje completado:","${progress}%"\n`;
+
+            // Crear archivo Excel con BOM para mejor compatibilidad
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { 
+                type: 'application/vnd.ms-excel;charset=utf-8;' 
+            });
+            
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', `inventario_progreso_${new Date().toISOString().split('T')[0]}.txt`);
+            link.setAttribute('download', `inventario_progreso_${new Date().toISOString().split('T')[0]}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
