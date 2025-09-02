@@ -135,14 +135,14 @@
 
         <div class="gdrive-container">
           <label style="font-weight:bold;color:#667eea;margin-bottom:10px;display:block;">🟢 Cargar desde Google Drive</label>
-          <input type="text" id="gdriveUrl" class="gdrive-input" placeholder="Pega enlace compartido de Google Drive (archivo CSV o Google Sheets)" />
+          <input type="text" id="gdriveUrl" class="gdrive-input" placeholder="Pega enlace compartido de Google Drive (archivo CSV/XLSX o Google Sheets)" />
           <button class="load-gdrive-btn" onclick="loadFromGDrive()"><span id="gdriveBtnText">🔗 Cargar desde Google Drive</span></button>
           <div style="font-size:.85em;color:#666;margin-top:5px;">
             💡 Tips:
             <ul style="margin-left:18px;">
               <li>Archivo: <code>https://drive.google.com/file/d/FILE_ID/view?usp=sharing</code></li>
               <li>Hoja de cálculo: <code>https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit?gid=0</code></li>
-              <li>Comparte como “Cualquier persona con el enlace”</li>
+              <li>Comparte como “Cualquier persona con el enlace”. Si hay bloqueo por tamaño, en Sheets usa “Publicar en la web &rarr; CSV”.</li>
             </ul>
           </div>
         </div>
@@ -166,7 +166,7 @@
         <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por código o descripción..." />
       </div>
 
-      <!-- ====== NUEVOS FILTROS AVANZADOS ====== -->
+      <!-- ====== FILTROS AVANZADOS (SELECCIONA COLUMNA) ====== -->
       <div class="advanced-search" id="advancedSearch">
         <div class="adv-grid">
           <div class="adv-col">
@@ -248,7 +248,7 @@
 
   <div id="toast" class="toast"></div>
 
-  <!-- SheetJS para exportar a Excel -->
+  <!-- SheetJS para exportar/leer Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
@@ -271,10 +271,21 @@
     $('searchInput').addEventListener('input', debounce(handleSearch, 200));
     $('sucursalInput').addEventListener('input', e => { sucursalName=e.target.value; autoSave(); });
 
-    // Advanced filter UI events
+    // Advanced filter UI
     $('fieldSelect').addEventListener('change', onFieldChanged);
     $('operatorSelect').addEventListener('change', applyAdvancedFilters);
-    $('valueInput1').addEventListener('input', debounce(applyAdvancedFilters, 150));
+    // valueInput1 puede ser input o select (boolean)
+    const attachValue1Listener = () => {
+      const el = $('valueInput1');
+      if (!el) return;
+      el.removeEventListener('input', applyAdvancedFilters);
+      el.removeEventListener('change', applyAdvancedFilters);
+      if (el.tagName.toLowerCase() === 'select') {
+        el.addEventListener('change', applyAdvancedFilters);
+      } else {
+        el.addEventListener('input', debounce(applyAdvancedFilters, 150));
+      }
+    };
     $('valueInput2').addEventListener('input', debounce(applyAdvancedFilters, 150));
     $('caseInsensitive').addEventListener('change', applyAdvancedFilters);
 
@@ -308,17 +319,12 @@
 
     /* ===================== GOOGLE DRIVE ===================== */
     function parseDriveUrl(url){
-      // Cases:
-      // 1) File: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-      // 2) Open: https://drive.google.com/open?id=FILE_ID
-      // 3) UC:   https://drive.google.com/uc?id=FILE_ID&export=download
-      // 4) Sheets: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=0 (or ?gid=)
       try{
         const u = new URL(url);
         const host = u.host;
         const path = u.pathname;
 
-        // Sheets
+        // Google Sheets → export CSV
         if (host.includes('docs.google.com') && path.includes('/spreadsheets/d/')) {
           const id = path.split('/spreadsheets/d/')[1].split('/')[0];
           const gidMatch = u.search.match(/gid=(\d+)/) || u.hash.match(/gid=(\d+)/);
@@ -326,7 +332,7 @@
           return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv${gid ? '&gid='+gid : ''}`;
         }
 
-        // file/d/FILE_ID
+        // file/d/FILE_ID/view → uc?export=download
         if (host.includes('drive.google.com') && path.includes('/file/d/')) {
           const id = path.split('/file/d/')[1].split('/')[0];
           return `https://drive.google.com/uc?export=download&id=${id}`;
@@ -349,22 +355,62 @@
       return null;
     }
 
-    function loadFromGDrive(){
+    async function loadFromGDrive(){
       const url = $('gdriveUrl').value.trim();
       if (!url) return alert('Pega un enlace compartido de Google Drive (archivo o Google Sheets)');
       const direct = parseDriveUrl(url);
-      if (!direct) return alert('No pude interpretar el enlace. Asegúrate de pegar un link de "Compartir" válido de Drive/Sheets.');
+      if (!direct) return alert('No pude interpretar el enlace. Asegúrate de pegar un link de “Compartir” válido de Drive/Sheets.');
       const btn = $('gdriveBtnText'); const old = btn.innerHTML;
       btn.innerHTML = '<span class="loading"></span> Cargando...';
 
-      fetch(direct,{ method:'GET', mode:'cors' })
-        .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-        .then(csv => { btn.innerHTML = old; parseCSV(csv); showToast('Archivo de Google Drive cargado ✅'); })
-        .catch(err => {
-          btn.innerHTML = old;
-          console.error(err);
-          alert('⚠ Error al cargar desde Google Drive.\n\nRevisa:\n• Permisos: “Cualquier persona con el enlace”\n• Si es Google Sheets, que exista la hoja (gid)\n• Intenta abrir el link en una pestaña normal\n\n'+err.message);
-        });
+      try {
+        // Intento 1: como texto CSV
+        let res = await fetch(direct, { method:'GET' });
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' al solicitar el archivo');
+        let ct = (res.headers.get('content-type') || '').toLowerCase();
+
+        if (ct.includes('text') || ct.includes('csv') || ct.includes('plain')) {
+          let csvText = await res.text();
+          const looksHtml = /<html|<!doctype html/i.test(csvText);
+          const header = (csvText.split('\n')[0] || '').toUpperCase();
+          const headerOk = /CODIGO|DESCRIPCION|ESTADO|REAL|EXISTENCIAS/.test(header);
+
+          // Si parece HTML (página intermedia) o el header no cuadra, probar como binario (XLSX)
+          if (looksHtml || !headerOk || /\x00/.test(csvText)) {
+            res = await fetch(direct, { method:'GET' });
+            const buf = await res.arrayBuffer();
+            const wb = XLSX.read(buf, { type:'array' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const csvFromXlsx = XLSX.utils.sheet_to_csv(ws);
+            parseCSV(csvFromXlsx);
+          } else {
+            parseCSV(csvText);
+          }
+        } else {
+          // Intento 2: como binario XLSX
+          const buf = await res.arrayBuffer();
+          const wb = XLSX.read(buf, { type:'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const csv = XLSX.utils.sheet_to_csv(ws);
+          parseCSV(csv);
+        }
+
+        btn.innerHTML = old;
+        showToast('Archivo de Google Drive cargado ✅');
+      } catch (err) {
+        btn.innerHTML = old;
+        console.error(err);
+        alert(
+          '⚠ No pude leer el archivo directamente desde Google Drive.\n\n' +
+          'Causas típicas:\n' +
+          '• Restricciones CORS de Google Drive para descargas directas.\n' +
+          '• Archivo grande con página de confirmación de virus.\n\n' +
+          'Soluciones rápidas:\n' +
+          '1) Descarga el archivo y usa “Cargar archivo CSV local”.\n' +
+          '2) Si es Google Sheets: usa el enlace del propio Sheets (yo exporto CSV).\n' +
+          '3) Mejor: en Sheets, Archivo → Compartir → “Publicar en la web” → CSV. Pega ese link aquí.'
+        );
+      }
     }
 
     /* ===================== CSV ROBUSTO ===================== */
@@ -553,13 +599,10 @@
 
     function handleSearch(){
       const term = $('searchInput').value.toLowerCase();
-      // base por búsqueda rápida en código/descripcion
       let base = inventoryData.filter(it =>
         it.codigo.toLowerCase().includes(term) || it.descripcion.toLowerCase().includes(term)
       );
-      // filtro avanzado (si está configurado)
       base = base.filter(matchesAdvanced);
-      // filtro rápido (botones)
       switch (currentFilter) {
         case 'checked': filteredData = base.filter(i=>i.checked); break;
         case 'unchecked': filteredData = base.filter(i=>!i.checked); break;
@@ -571,14 +614,25 @@
     }
     function filterItems(f,btn){ document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); currentFilter=f; handleSearch(); }
 
-    /* ====== FILTRO AVANZADO NUEVO ====== */
+    /* ====== FILTRO AVANZADO ====== */
     function onFieldChanged(){
       const field = $('fieldSelect').value;
       const opSel = $('operatorSelect');
-      const val1 = $('valueInput1'); const val2 = $('valueInput2');
+      let v1 = $('valueInput1'); // puede ser input o select (boolean)
+      const v2 = $('valueInput2');
       const col2 = $('valueCol2'); const caseCol = $('caseCol');
-      // reset
-      opSel.innerHTML = ''; val1.value=''; val2.value=''; col2.style.display='none'; caseCol.style.display='none';
+
+      // Si antes era boolean (select) y ahora no, volver a input
+      if (v1 && v1.tagName.toLowerCase() !== 'input') {
+        const newInput = document.createElement('input');
+        newInput.id='valueInput1'; newInput.className='input'; newInput.placeholder='Valor';
+        v1.replaceWith(newInput);
+      }
+
+      // refrescar referencias y limpiar
+      v1 = $('valueInput1'); v1.value='';
+      v2.value='';
+      opSel.innerHTML=''; col2.style.display='none'; caseCol.style.display='none';
 
       if (!field) { applyAdvancedFilters(); return; }
 
@@ -588,21 +642,19 @@
           const o=document.createElement('option'); o.value=op; o.textContent=op.replace('_',' ');
           opSel.appendChild(o);
         });
-        $('valueInput1').type='text';
+        v1.type='text';
         caseCol.style.display='block';
       } else if (type === 'number') {
         ['=','≠','>','≥','<','≤','entre'].forEach(op=>{
           const o=document.createElement('option'); o.value=op; o.textContent=op;
           opSel.appendChild(o);
         });
-        $('valueInput1').type='number';
+        v1.type='number';
       } else if (type === 'boolean') {
-        ['es'].forEach(op=>{ const o=document.createElement('option'); o.value=op; o.textContent='es'; opSel.appendChild(o); });
-        // reemplazar input por select sí/no
-        const v1 = $('valueInput1');
-        v1.type='text';
-        v1.replaceWith(booleanSelect('valueInput1'));
+        const sel = booleanSelect('valueInput1');
+        v1.replaceWith(sel);
       }
+      attachValue1Listener();
       applyAdvancedFilters();
     }
 
@@ -625,9 +677,9 @@
       const field = $('fieldSelect').value;
       if (!field) return true;
 
-      const op = $('operatorSelect').value;
+      const op = $('operatorSelect').value || '';
       const caseInsensitive = $('caseInsensitive').checked;
-      const v1el = $('valueInput1'); // puede ser input o select (boolean)
+      const v1el = $('valueInput1'); // input o select
       const v2el = $('valueInput2');
 
       let value1 = v1el ? v1el.value : '';
@@ -690,12 +742,11 @@
     function clearAdvancedFilters(){
       $('fieldSelect').value='';
       $('operatorSelect').innerHTML='';
-      // asegurar que valueInput1 es un input (por si fue reemplazado por select)
+      // asegurar que valueInput1 es input (por si era select bool)
       const current = $('valueInput1');
       if (current && current.tagName.toLowerCase() !== 'input') {
         const newInput = document.createElement('input');
         newInput.id='valueInput1'; newInput.className='input'; newInput.placeholder='Valor';
-        newInput.addEventListener('input', debounce(applyAdvancedFilters, 150));
         current.replaceWith(newInput);
       } else if (current) {
         current.value='';
@@ -704,6 +755,7 @@
       $('valueCol2').style.display='none';
       $('caseCol').style.display='none';
       $('caseInsensitive').checked=true;
+      attachValue1Listener();
       applyAdvancedFilters();
     }
 
@@ -777,7 +829,8 @@
     function downloadImageFile(base64Data,filename){
       fetch(base64Data).then(res=>res.blob()).then(blob=>{
         const url=URL.createObjectURL(blob); const a=document.createElement('a');
-        a.href=url; a.download=filename; a.style.visibility='hidden'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        a.href=url; a.download=filename; a.style.visibility='hidden';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       });
     }
     function downloadTemplate(){
@@ -825,10 +878,11 @@ ${diferencia<0?'⚠️ FALTANTE detectado':diferencia>0?'✅ SOBRANTE detectado'
 
     /* ===================== INIT ===================== */
     function initAdvancedDefaults(){
-      $('operatorSelect').innerHTML=''; // vacío hasta elegir campo
+      $('operatorSelect').innerHTML='';
       $('valueCol2').style.display='none';
       $('caseCol').style.display='none';
       $('caseInsensitive').checked=true;
+      attachValue1Listener();
     }
 
     updateStats();
