@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Sistema de Inventario con Fotos</title>
   <style>
-    /* ====== ESTILOS (sin cambios visuales mayores) ====== */
+    /* ====== ESTILOS ====== */
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:10px}
     .container{max-width:1400px;margin:0 auto;background:rgba(255,255,255,.95);border-radius:20px;box-shadow:0 20px 40px rgba(0,0,0,.2);overflow:hidden}
@@ -21,11 +21,11 @@
     .file-input input[type=file]{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer}
     .file-input-button{display:block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px;border-radius:12px;text-align:center;font-size:16px;font-weight:bold;transition:.3s;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.2)}
     .file-input-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
-    .dropbox-container{background:#fff;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-bottom:15px}
-    .dropbox-input{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;margin-bottom:10px;transition:.3s}
-    .dropbox-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
-    .load-dropbox-btn{background:linear-gradient(135deg,#007ee5 0%,#0061a6 100%);color:#fff;padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:.3s}
-    .load-dropbox-btn:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,123,229,.3)}
+    .gdrive-container{background:#fff;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-bottom:15px}
+    .gdrive-input{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;margin-bottom:10px;transition:.3s}
+    .gdrive-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
+    .load-gdrive-btn{background:linear-gradient(135deg,#0f9d58 0%,#0b8043 100%);color:#fff;padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:.3s}
+    .load-gdrive-btn:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(11,128,67,.3)}
     .search-container{position:relative;margin-bottom:15px}
     .search-input{width:100%;padding:15px;border:2px solid #e0e0e0;border-radius:12px;font-size:16px;transition:.3s;background:#fff}
     .search-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
@@ -39,11 +39,11 @@
     .filter-toggle-btn.active{background:#667eea;color:#fff}
     .advanced-search{display:none;background:#fff;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-top:10px;border:2px solid #667eea}
     .advanced-search.active{display:block}
-    .search-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:15px}
-    .search-filter-group{display:flex;flex-direction:column;gap:5px}
-    .search-filter-label{font-weight:bold;color:#667eea;font-size:.9em}
-    .search-filter-input{padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px}
-    .search-filter-input:focus{outline:none;border-color:#667eea}
+    .adv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:10px}
+    .adv-col{display:flex;flex-direction:column;gap:6px}
+    .label{font-weight:bold;color:#667eea;font-size:.9em}
+    .input, .select{padding:8px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px}
+    .input:focus,.select:focus{outline:none;border-color:#667eea}
     .clear-filters-btn{background:#ff6b6b;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px;transition:.3s}
     .clear-filters-btn:hover{background:#ff5252}
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;padding:20px;background:rgba(0,242,254,.05)}
@@ -106,7 +106,7 @@
       .card-view{grid-template-columns:1fr;padding:10px}
       .product-card{margin:0 5px}
       .inventory-table th,.inventory-table td{padding:8px 4px;font-size:14px}
-      .sucursal-container,.dropbox-container{flex-direction:column;align-items:stretch}
+      .sucursal-container,.gdrive-container{flex-direction:column;align-items:stretch}
       .sucursal-label{min-width:auto}
       .view-toggle{flex-wrap:wrap}
     }
@@ -133,11 +133,18 @@
           <label for="csvFile" class="file-input-button">📁 Cargar archivo CSV local</label>
         </div>
 
-        <div class="dropbox-container">
-          <label style="font-weight:bold;color:#667eea;margin-bottom:10px;display:block;">☁️ Cargar desde Dropbox</label>
-          <input type="text" id="dropboxUrl" class="dropbox-input" placeholder="Pegar enlace de Dropbox CSV (ej: https://dropbox.com/s/abc123/inventario.csv?dl=0)" />
-          <button class="load-dropbox-btn" onclick="loadFromDropbox()"><span id="dropboxBtnText">🔗 Cargar desde Dropbox</span></button>
-          <div style="font-size:.85em;color:#666;margin-top:5px;">💡 Tip: Cambia "?dl=0" por "?dl=1" para descarga directa</div>
+        <div class="gdrive-container">
+          <label style="font-weight:bold;color:#667eea;margin-bottom:10px;display:block;">🟢 Cargar desde Google Drive</label>
+          <input type="text" id="gdriveUrl" class="gdrive-input" placeholder="Pega enlace compartido de Google Drive (archivo CSV o Google Sheets)" />
+          <button class="load-gdrive-btn" onclick="loadFromGDrive()"><span id="gdriveBtnText">🔗 Cargar desde Google Drive</span></button>
+          <div style="font-size:.85em;color:#666;margin-top:5px;">
+            💡 Tips:
+            <ul style="margin-left:18px;">
+              <li>Archivo: <code>https://drive.google.com/file/d/FILE_ID/view?usp=sharing</code></li>
+              <li>Hoja de cálculo: <code>https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit?gid=0</code></li>
+              <li>Comparte como “Cualquier persona con el enlace”</li>
+            </ul>
+          </div>
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -156,41 +163,55 @@
       </div>
 
       <div class="search-container">
-        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por código, descripción..." />
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por código o descripción..." />
       </div>
 
+      <!-- ====== NUEVOS FILTROS AVANZADOS ====== -->
       <div class="advanced-search" id="advancedSearch">
-        <div class="search-filters">
-          <div class="search-filter-group">
-            <label class="search-filter-label">Estado</label>
-            <select class="search-filter-input" id="estadoFilter">
-              <option value="">Todos los estados</option>
-              <option value="ACTIVO">Activo</option>
-              <option value="DESCONTINUADO">Descontinuado</option>
-              <option value="AGOTADO">Agotado</option>
+        <div class="adv-grid">
+          <div class="adv-col">
+            <label class="label">Campo</label>
+            <select id="fieldSelect" class="select">
+              <option value="">(Sin filtro)</option>
+              <option value="codigo">Código</option>
+              <option value="descripcion">Descripción</option>
+              <option value="estado">Estado</option>
+              <option value="real">Real</option>
+              <option value="existencias">Existencias</option>
+              <option value="diferencia">Diferencia (Real - Existencias)</option>
+              <option value="comentario">Comentario</option>
+              <option value="checked">Verificado</option>
+              <option value="tiene_foto">Tiene foto</option>
             </select>
           </div>
-          <div class="search-filter-group">
-            <label class="search-filter-label">Existencias (desde)</label>
-            <input type="number" class="search-filter-input" id="existenciasMin" placeholder="0" min="0" />
+
+          <div class="adv-col">
+            <label class="label">Operador</label>
+            <select id="operatorSelect" class="select"></select>
           </div>
-          <div class="search-filter-group">
-            <label class="search-filter-label">Existencias (hasta)</label>
-            <input type="number" class="search-filter-input" id="existenciasMax" placeholder="1000" min="0" />
+
+          <div class="adv-col" id="valueCol1">
+            <label class="label" id="valueLabel1">Valor</label>
+            <input id="valueInput1" class="input" placeholder="Valor" />
           </div>
-          <div class="search-filter-group">
-            <label class="search-filter-label">Diferencia</label>
-            <select class="search-filter-input" id="diferenciaFilter">
-              <option value="">Todas</option>
-              <option value="positive">Sobrantes (+)</option>
-              <option value="negative">Faltantes (-)</option>
-              <option value="exact">Exactos (0)</option>
-            </select>
+
+          <div class="adv-col" id="valueCol2" style="display:none;">
+            <label class="label" id="valueLabel2">y</label>
+            <input id="valueInput2" class="input" placeholder="Valor 2" />
+          </div>
+
+          <div class="adv-col" id="caseCol" style="display:none;">
+            <label class="label">Opciones</label>
+            <label style="display:flex;gap:8px;align-items:center;">
+              <input type="checkbox" id="caseInsensitive" checked />
+              <span>Ignorar mayúsculas/minúsculas</span>
+            </label>
           </div>
         </div>
+
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <button class="clear-filters-btn" onclick="clearAdvancedFilters()">🗑️ Limpiar Filtros</button>
-          <span style="font-size:.8em;color:#666;">Los filtros se aplican automáticamente</span>
+          <button class="clear-filters-btn" onclick="clearAdvancedFilters()">🗑️ Limpiar Filtro Avanzado</button>
+          <span style="font-size:.8em;color:#666;">Se aplica automáticamente</span>
         </div>
       </div>
 
@@ -241,145 +262,132 @@
 
     /* ===================== HELPERS ===================== */
     const $ = (id) => document.getElementById(id);
-    const showToast = (msg, ms = 1800) => {
-      const el = $('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), ms);
-    };
-
-    const debounce = (fn, delay = 220) => {
-      let t;
-      return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(() => fn.apply(this, args), delay);
-      };
-    };
+    const showToast = (msg, ms = 1800) => { const el=$('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), ms); };
+    const debounce = (fn, delay=220) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a),delay); }; };
+    const escapeHtml = (s='') => s.replace(/[&<>"']/g,(m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
     /* ===================== EVENTOS ===================== */
     $('csvFile').addEventListener('change', handleFileUpload);
     $('searchInput').addEventListener('input', debounce(handleSearch, 200));
-    $('sucursalInput').addEventListener('input', (e) => {
-      sucursalName = e.target.value;
-      autoSave();
-    });
-    $('estadoFilter').addEventListener('change', applyAdvancedFilters);
-    $('existenciasMin').addEventListener('input', applyAdvancedFilters);
-    $('existenciasMax').addEventListener('input', applyAdvancedFilters);
-    $('diferenciaFilter').addEventListener('change', applyAdvancedFilters);
+    $('sucursalInput').addEventListener('input', e => { sucursalName=e.target.value; autoSave(); });
+
+    // Advanced filter UI events
+    $('fieldSelect').addEventListener('change', onFieldChanged);
+    $('operatorSelect').addEventListener('change', applyAdvancedFilters);
+    $('valueInput1').addEventListener('input', debounce(applyAdvancedFilters, 150));
+    $('valueInput2').addEventListener('input', debounce(applyAdvancedFilters, 150));
+    $('caseInsensitive').addEventListener('change', applyAdvancedFilters);
 
     /* ===================== LOCALSTORAGE ===================== */
-    function autoSave() {
-      if (inventoryData.length === 0) return;
-      try {
-        // No guardamos las fotos para evitar superar la cuota
+    function autoSave(){
+      if (!inventoryData.length) return;
+      try{
         const slim = inventoryData.map(({ imageData, ...rest }) => rest);
-        const payload = {
-          sucursal: sucursalName,
-          data: slim,
-          ts: Date.now(),
-          ui: { currentFilter, currentView }
-        };
+        const payload = { sucursal:sucursalName, data:slim, ts:Date.now(), ui:{ currentFilter, currentView } };
         localStorage.setItem(LS_KEY, JSON.stringify(payload));
-        // No es blocking
-      } catch (e) {
-        console.warn('No se pudo guardar progreso:', e);
-      }
+      }catch(e){ console.warn('No se pudo guardar progreso:', e); }
     }
-
-    function autoLoad() {
-      try {
-        const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return;
+    function autoLoad(){
+      try{
+        const raw = localStorage.getItem(LS_KEY); if(!raw) return;
         const payload = JSON.parse(raw);
         sucursalName = payload.sucursal || '';
         $('sucursalInput').value = sucursalName;
-        inventoryData = (payload.data || []).map((it, i) => ({ ...it, id: it.id ?? (i + 1), imageData: null }));
+        inventoryData = (payload.data||[]).map((it,i)=>({ ...it, id: it.id ?? (i+1), imageData:null }));
         currentFilter = payload.ui?.currentFilter || 'all';
         currentView = payload.ui?.currentView || 'cards';
         filteredData = [...inventoryData];
-        renderView();
-        updateStats();
-        showToast('Progreso cargado ✅');
-      } catch (e) {
-        console.warn('No se pudo cargar progreso:', e);
+        renderView(); updateStats(); showToast('Progreso cargado ✅');
+      }catch(e){ console.warn('No se pudo cargar progreso:', e); }
+    }
+    function resetProgress(){
+      if(!confirm('Esto borrará el progreso guardado (no tus archivos). ¿Continuar?')) return;
+      try{ localStorage.removeItem(LS_KEY); }catch{}
+      inventoryData=[]; filteredData=[]; renderView(); updateStats(); clearAdvancedFilters(); $('searchInput').value=''; showToast('Progreso reiniciado');
+    }
+
+    /* ===================== GOOGLE DRIVE ===================== */
+    function parseDriveUrl(url){
+      // Cases:
+      // 1) File: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+      // 2) Open: https://drive.google.com/open?id=FILE_ID
+      // 3) UC:   https://drive.google.com/uc?id=FILE_ID&export=download
+      // 4) Sheets: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=0 (or ?gid=)
+      try{
+        const u = new URL(url);
+        const host = u.host;
+        const path = u.pathname;
+
+        // Sheets
+        if (host.includes('docs.google.com') && path.includes('/spreadsheets/d/')) {
+          const id = path.split('/spreadsheets/d/')[1].split('/')[0];
+          const gidMatch = u.search.match(/gid=(\d+)/) || u.hash.match(/gid=(\d+)/);
+          const gid = gidMatch ? gidMatch[1] : null;
+          return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv${gid ? '&gid='+gid : ''}`;
+        }
+
+        // file/d/FILE_ID
+        if (host.includes('drive.google.com') && path.includes('/file/d/')) {
+          const id = path.split('/file/d/')[1].split('/')[0];
+          return `https://drive.google.com/uc?export=download&id=${id}`;
+        }
+
+        // open?id=FILE_ID
+        if (host.includes('drive.google.com') && u.searchParams.get('id')) {
+          const id = u.searchParams.get('id');
+          return `https://drive.google.com/uc?export=download&id=${id}`;
+        }
+
+        // uc?id=FILE_ID
+        if (host.includes('drive.google.com') && path.includes('/uc')) {
+          const id = u.searchParams.get('id');
+          if (id) return `https://drive.google.com/uc?export=download&id=${id}`;
+        }
+      }catch(e){
+        return null;
       }
+      return null;
     }
 
-    function resetProgress() {
-      if (!confirm('Esto borrará el progreso guardado (no tus archivos). ¿Continuar?')) return;
-      try {
-        localStorage.removeItem(LS_KEY);
-      } catch {}
-      inventoryData = [];
-      filteredData = [];
-      renderView();
-      updateStats();
-      showToast('Progreso reiniciado');
-    }
+    function loadFromGDrive(){
+      const url = $('gdriveUrl').value.trim();
+      if (!url) return alert('Pega un enlace compartido de Google Drive (archivo o Google Sheets)');
+      const direct = parseDriveUrl(url);
+      if (!direct) return alert('No pude interpretar el enlace. Asegúrate de pegar un link de "Compartir" válido de Drive/Sheets.');
+      const btn = $('gdriveBtnText'); const old = btn.innerHTML;
+      btn.innerHTML = '<span class="loading"></span> Cargando...';
 
-    /* ===================== DROPBOX CSV ===================== */
-    function loadFromDropbox() {
-      const url = $('dropboxUrl').value.trim();
-      if (!url) return alert('Pega un enlace de Dropbox válido');
-      let downloadUrl = url;
-      if (url.includes('dropbox.com') && url.includes('?dl=0')) downloadUrl = url.replace('?dl=0', '?dl=1');
-      else if (url.includes('dropbox.com') && !url.includes('?dl=')) downloadUrl = url + '?dl=1';
-
-      const btnText = $('dropboxBtnText');
-      const original = btnText.innerHTML;
-      btnText.innerHTML = '<span class="loading"></span> Cargando...';
-
-      fetch(downloadUrl,{method:'GET',mode:'cors'})
+      fetch(direct,{ method:'GET', mode:'cors' })
         .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-        .then(csv => {
-          btnText.innerHTML = original;
-          parseCSV(csv);
-          showToast('Archivo Dropbox cargado ✅');
-        })
+        .then(csv => { btn.innerHTML = old; parseCSV(csv); showToast('Archivo de Google Drive cargado ✅'); })
         .catch(err => {
-          btnText.innerHTML = original;
+          btn.innerHTML = old;
           console.error(err);
-          alert('⚠ Error al cargar el archivo Dropbox.\n\nVerifica:\n• Enlace correcto y público\n• Termina en ?dl=1\n• Intenta otro navegador\n\n'+err.message);
+          alert('⚠ Error al cargar desde Google Drive.\n\nRevisa:\n• Permisos: “Cualquier persona con el enlace”\n• Si es Google Sheets, que exista la hoja (gid)\n• Intenta abrir el link en una pestaña normal\n\n'+err.message);
         });
     }
 
-    /* ===================== CSV PARSER ROBUSTO ===================== */
-    function detectDelimiter(headerLine) {
-      const commas = (headerLine.match(/,/g) || []).length;
-      const semis  = (headerLine.match(/;/g) || []).length;
-      return semis > commas ? ';' : ',';
-    }
-
-    function splitCSVRow(row, delim) {
-      const out = [];
-      let cur = '';
-      let inQuotes = false;
-      for (let i = 0; i < row.length; i++) {
-        const ch = row[i];
-        if (ch === '"') {
-          if (inQuotes && row[i+1] === '"') { cur += '"'; i++; }
-          else inQuotes = !inQuotes;
-        } else if (ch === delim && !inQuotes) {
-          out.push(cur);
-          cur = '';
-        } else {
-          cur += ch;
-        }
+    /* ===================== CSV ROBUSTO ===================== */
+    function detectDelimiter(headerLine){ const c=(headerLine.match(/,/g)||[]).length; const s=(headerLine.match(/;/g)||[]).length; return s>c?';':','; }
+    function splitCSVRow(row,delim){
+      const out=[]; let cur=''; let inQ=false;
+      for(let i=0;i<row.length;i++){
+        const ch=row[i];
+        if(ch === '"'){ if(inQ && row[i+1] === '"'){ cur+='"'; i++; } else inQ=!inQ; }
+        else if(ch===delim && !inQ){ out.push(cur); cur=''; }
+        else cur+=ch;
       }
       out.push(cur);
-      return out.map(s => s.trim());
+      return out.map(s=>s.trim());
     }
-
-    function parseCSV(text) {
-      const clean = text.replace(/\r/g, '').trim();
-      const lines = clean.split('\n').filter(Boolean);
-      if (lines.length < 2) return alert('El CSV requiere encabezados + al menos una fila de datos.');
-      const delim = detectDelimiter(lines[0]);
-
-      const headers = splitCSVRow(lines[0], delim).map(h => h.toUpperCase());
-      const idx = (name) => headers.indexOf(name);
-      const IDX = {
+    function parseCSV(text){
+      const clean=text.replace(/\r/g,'').trim();
+      const lines=clean.split('\n').filter(Boolean);
+      if(lines.length<2) return alert('El CSV requiere encabezados + al menos una fila de datos.');
+      const delim=detectDelimiter(lines[0]);
+      const headers=splitCSVRow(lines[0],delim).map(h=>h.toUpperCase());
+      const idx=(n)=>headers.indexOf(n);
+      const IDX={
         CODIGO: idx('CODIGO'),
         DESCRIPCION: idx('DESCRIPCION'),
         ESTADO: idx('ESTADO'),
@@ -388,126 +396,85 @@
         EXISTENCIAS: idx('EXISTENCIAS'),
         COMENTARIO: idx('COMENTARIO')
       };
+      const missing=['CODIGO','DESCRIPCION','ESTADO','REAL','EXISTENCIAS'].filter(k=>IDX[k]===-1);
+      if(missing.length){ alert('Faltan columnas obligatorias: '+missing.join(', ')); return; }
 
-      const missing = ['CODIGO','DESCRIPCION','ESTADO','REAL','EXISTENCIAS'].filter(k => IDX[k] === -1);
-      if (missing.length) {
-        alert('Faltan columnas obligatorias en el CSV: ' + missing.join(', '));
-        return;
-      }
-
-      inventoryData = [];
-      for (let i = 1; i < lines.length; i++) {
-        const row = splitCSVRow(lines[i], delim);
-        const get = (pos) => (pos >= 0 && pos < row.length) ? row[pos] : '';
-        const real = parseFloat(get(IDX.REAL).toString().replace(',', '.')) || 0;
-        const exis = parseFloat(get(IDX.EXISTENCIAS).toString().replace(',', '.')) || 0;
-
-        const item = {
-          id: i,
-          codigo: get(IDX.CODIGO) || '',
-          descripcion: get(IDX.DESCRIPCION) || '',
-          estado: get(IDX.ESTADO) || '',
-          foto: IDX.FOTO >= 0 ? get(IDX.FOTO) : '',
+      inventoryData=[];
+      for(let i=1;i<lines.length;i++){
+        const row=splitCSVRow(lines[i],delim);
+        const get=(p)=> (p>=0 && p<row.length) ? row[p] : '';
+        const real=parseFloat(get(IDX.REAL).toString().replace(',','.'))||0;
+        const exis=parseFloat(get(IDX.EXISTENCIAS).toString().replace(',','.'))||0;
+        const item={
+          id:i,
+          codigo:get(IDX.CODIGO)||'',
+          descripcion:get(IDX.DESCRIPCION)||'',
+          estado:get(IDX.ESTADO)||'',
+          foto: IDX.FOTO>=0 ? get(IDX.FOTO) : '',
           real: real,
           existencias: exis,
-          comentario: IDX.COMENTARIO >= 0 ? get(IDX.COMENTARIO) : '',
-          checked: false,
-          imageData: null
+          comentario: IDX.COMENTARIO>=0 ? get(IDX.COMENTARIO) : '',
+          checked:false,
+          imageData:null
         };
         inventoryData.push(item);
       }
-      filteredData = [...inventoryData];
-      renderView();
-      updateStats();
-      autoSave();
-      showToast('CSV cargado ✅');
+      filteredData=[...inventoryData];
+      renderView(); updateStats(); autoSave(); showToast('CSV cargado ✅');
     }
 
-    function handleFileUpload(ev) {
-      const file = ev.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => parseCSV(e.target.result);
+    function handleFileUpload(ev){
+      const file=ev.target.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=(e)=>parseCSV(e.target.result);
       reader.readAsText(file);
     }
 
-    /* ===================== UI Y RENDER ===================== */
-    function switchView(view, btn) {
-      currentView = view;
-      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-      renderView();
-      autoSave();
-    }
+    /* ===================== UI RENDER ===================== */
+    function switchView(view, btn){ currentView=view; document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); renderView(); autoSave(); }
+    function toggleAdvancedSearch(btn){ const box=$('advancedSearch'); box.classList.toggle('active'); if(btn) btn.classList.toggle('active'); }
 
-    function toggleAdvancedSearch(btn) {
-      const box = $('advancedSearch');
-      box.classList.toggle('active');
-      if (btn) btn.classList.toggle('active');
-    }
+    function renderView(){ currentView==='cards'?renderCards():renderTable(); }
 
-    function renderView() {
-      if (currentView === 'cards') renderCards();
-      else renderTable();
-    }
-
-    function renderCards() {
-      const container = $('inventoryContainer');
-      if (filteredData.length === 0) {
-        container.innerHTML = `
-          <div class="no-data">
-            <h3>📋 ${inventoryData.length === 0 ? 'Sin datos' : 'No hay resultados'}</h3>
-            <p>${inventoryData.length === 0 ? 'Carga un archivo CSV para comenzar' : 'Intenta con otros filtros o términos de búsqueda'}</p>
-          </div>`;
+    function renderCards(){
+      const c=$('inventoryContainer');
+      if(!filteredData.length){
+        c.innerHTML=`<div class="no-data"><h3>📋 ${inventoryData.length===0?'Sin datos':'No hay resultados'}</h3><p>${inventoryData.length===0?'Carga un archivo CSV para comenzar':'Intenta con otros filtros o términos de búsqueda'}</p></div>`;
         return;
       }
-
-      container.innerHTML = `
+      c.innerHTML = `
         <div class="card-view">
-          ${filteredData.map(item => `
-            <div class="product-card ${item.checked ? 'checked' : ''}">
+          ${filteredData.map(item=>`
+            <div class="product-card ${item.checked?'checked':''}">
               <div class="card-header">
-                <div class="card-checkbox ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})"></div>
+                <div class="card-checkbox ${item.checked?'checked':''}" onclick="toggleCheck(${item.id})"></div>
                 <div class="card-code">${escapeHtml(item.codigo)}</div>
               </div>
-
               <div class="card-image">
-                ${item.imageData
-                  ? `<img src="${item.imageData}" alt="Producto ${escapeHtml(item.codigo)}">`
-                  : `<div class="image-placeholder">📷</div>`
-                }
+                ${item.imageData?`<img src="${item.imageData}" alt="Producto ${escapeHtml(item.codigo)}">`:`<div class="image-placeholder">📷</div>`}
                 <button class="photo-upload" onclick="uploadPhoto(${item.id})">📷</button>
                 <input type="file" class="photo-input" id="photo-${item.id}" accept="image/*" onchange="handlePhotoUpload(${item.id}, event)">
               </div>
-
               <div class="card-body">
                 <div class="card-description">${escapeHtml(item.descripcion)}</div>
-
                 <div class="card-details">
-                  <div class="detail-item estado">
-                    <div class="detail-label">Estado</div>
-                    <div class="detail-value">${escapeHtml(item.estado)}</div>
-                  </div>
-                  <div class="detail-item existencias">
-                    <div class="detail-label">Existencias</div>
-                    <div class="detail-value">${item.existencias}</div>
-                  </div>
+                  <div class="detail-item estado"><div class="detail-label">Estado</div><div class="detail-value">${escapeHtml(item.estado)}</div></div>
+                  <div class="detail-item existencias"><div class="detail-label">Existencias</div><div class="detail-value">${item.existencias}</div></div>
                   <div class="detail-item real-section">
                     <div class="detail-label">Real</div>
                     <div class="real-input-container">
-                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, -1)" title="Reducir cantidad">−</button>
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, -1)">−</button>
                       <input type="number" class="real-input" value="${item.real}" onchange="updateReal(${item.id}, this.value)" min="0" step="1">
-                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, 1)" title="Aumentar cantidad">+</button>
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, 1)">+</button>
                     </div>
                   </div>
                   <div class="detail-item">
                     <div class="detail-label">Diferencia</div>
-                    <div class="detail-value ${getDifferenceClass(item.real - item.existencias)}">
-                      ${(item.real - item.existencias) > 0 ? '+' : ''}${item.real - item.existencias}
+                    <div class="detail-value ${getDifferenceClass(item.real-item.existencias)}">
+                      ${(item.real-item.existencias)>0?'+':''}${item.real-item.existencias}
                     </div>
                   </div>
                 </div>
-
                 <textarea class="comment-input" placeholder="Agregar comentario o notas..." onchange="updateComment(${item.id}, this.value)" rows="3">${escapeHtml(item.comentario)}</textarea>
               </div>
             </div>
@@ -515,18 +482,13 @@
         </div>`;
     }
 
-    function renderTable() {
-      const container = $('inventoryContainer');
-      if (filteredData.length === 0) {
-        container.innerHTML = `
-          <div class="no-data">
-            <h3>📋 ${inventoryData.length === 0 ? 'Sin datos' : 'No hay resultados'}</h3>
-            <p>${inventoryData.length === 0 ? 'Carga un archivo CSV para comenzar' : 'Intenta con otros filtros o términos de búsqueda'}</p>
-          </div>`;
+    function renderTable(){
+      const c=$('inventoryContainer');
+      if(!filteredData.length){
+        c.innerHTML=`<div class="no-data"><h3>📋 ${inventoryData.length===0?'Sin datos':'No hay resultados'}</h3><p>${inventoryData.length===0?'Carga un archivo CSV para comenzar':'Intenta con otros filtros o términos de búsqueda'}</p></div>`;
         return;
       }
-
-      container.innerHTML = `
+      c.innerHTML = `
         <div class="table-container">
           <table class="inventory-table">
             <thead>
@@ -543,30 +505,26 @@
               </tr>
             </thead>
             <tbody>
-              ${filteredData.map(item => `
-                <tr class="${item.checked ? 'checked' : ''}">
-                  <td class="checkbox-container">
-                    <div class="custom-checkbox ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})"></div>
-                  </td>
+              ${filteredData.map(item=>`
+                <tr class="${item.checked?'checked':''}">
+                  <td class="checkbox-container"><div class="custom-checkbox ${item.checked?'checked':''}" onclick="toggleCheck(${item.id})"></div></td>
                   <td><strong>${escapeHtml(item.codigo)}</strong></td>
                   <td>${escapeHtml(item.descripcion)}</td>
                   <td>${escapeHtml(item.estado)}</td>
                   <td>
-                    <div class="table-image">
-                      ${item.imageData ? `<img src="${item.imageData}" alt="Producto">` : `<span style="color:#999;">📷</span>`}
-                    </div>
+                    <div class="table-image">${item.imageData?`<img src="${item.imageData}" alt="Producto">`:`<span style="color:#999;">📷</span>`}</div>
                     <button class="table-photo-btn" onclick="uploadPhoto(${item.id})">📷</button>
                     <input type="file" class="photo-input" id="photo-table-${item.id}" accept="image/*" onchange="handlePhotoUpload(${item.id}, event)">
                   </td>
                   <td><strong>${item.existencias}</strong></td>
                   <td>
                     <div class="numeric-input-container">
-                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, -1)" title="Reducir">−</button>
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, -1)">−</button>
                       <input type="number" class="numeric-input" value="${item.real}" onchange="updateReal(${item.id}, this.value)" min="0" step="1">
-                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, 1)" title="Aumentar">+</button>
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, 1)">+</button>
                     </div>
                   </td>
-                  <td><strong class="${getDifferenceClass(item.real - item.existencias)}">${(item.real - item.existencias) > 0 ? '+' : ''}${item.real - item.existencias}</strong></td>
+                  <td><strong class="${getDifferenceClass(item.real-item.existencias)}">${(item.real-item.existencias)>0?'+':''}${item.real-item.existencias}</strong></td>
                   <td><textarea class="comment-input" placeholder="Agregar comentario..." onchange="updateComment(${item.id}, this.value)" rows="2">${escapeHtml(item.comentario)}</textarea></td>
                 </tr>
               `).join('')}
@@ -575,268 +533,274 @@
         </div>`;
     }
 
-    function escapeHtml(s=''){
-      return s.replace(/[&<>"']/g,(m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    /* ===================== LÓGICA DE FILTROS ===================== */
+    function getDifferenceClass(d){ if(d<0) return 'difference-negative'; if(d>0) return 'difference-positive'; return ''; }
+
+    function uploadPhoto(itemId){
+      const input=document.getElementById(`photo-${itemId}`)||document.getElementById(`photo-table-${itemId}`);
+      if(input) input.click();
     }
-
-    /* ===================== FILTROS ===================== */
-    function getDifferenceClass(difference) {
-      if (difference < 0) return 'difference-negative';
-      if (difference > 0) return 'difference-positive';
-      return '';
+    function handlePhotoUpload(itemId,ev){
+      const f=ev.target.files[0]; if(!f) return;
+      const r=new FileReader();
+      r.onload=(e)=>{ const it=inventoryData.find(i=>i.id===itemId); if(it){ it.imageData=e.target.result; renderView(); updateStats(); } };
+      r.readAsDataURL(f);
     }
+    function toggleCheck(itemId){ const it=inventoryData.find(i=>i.id===itemId); if(it){ it.checked=!it.checked; renderView(); updateStats(); autoSave(); } }
+    function updateComment(itemId,comment){ const it=inventoryData.find(i=>i.id===itemId); if(it){ it.comentario=comment; autoSave(); } }
+    function updateReal(itemId,val){ const it=inventoryData.find(i=>i.id===itemId); if(it){ it.real=Math.max(0,parseFloat(val)||0); renderView(); updateStats(); autoSave(); } }
+    function adjustQuantity(itemId,chg){ const it=inventoryData.find(i=>i.id===itemId); if(it){ it.real=Math.max(0,(it.real||0)+chg); renderView(); updateStats(); autoSave(); } }
 
-    function uploadPhoto(itemId) {
-      const input = document.getElementById(`photo-${itemId}`) || document.getElementById(`photo-table-${itemId}`);
-      if (input) input.click();
-    }
-
-    function handlePhotoUpload(itemId, event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const item = inventoryData.find(i => i.id === itemId);
-        if (item) {
-          item.imageData = e.target.result;
-          renderView();
-          updateStats();
-          // No autosave de fotos por cuota
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function toggleCheck(itemId) {
-      const item = inventoryData.find(i => i.id === itemId);
-      if (item) {
-        item.checked = !item.checked;
-        renderView();
-        updateStats();
-        autoSave();
-      }
-    }
-
-    function updateComment(itemId, comment) {
-      const item = inventoryData.find(i => i.id === itemId);
-      if (item) {
-        item.comentario = comment;
-        autoSave();
-      }
-    }
-
-    function updateReal(itemId, value) {
-      const item = inventoryData.find(i => i.id === itemId);
-      if (item) {
-        item.real = Math.max(0, parseFloat(value) || 0);
-        renderView();
-        updateStats();
-        autoSave();
-      }
-    }
-
-    function adjustQuantity(itemId, change) {
-      const item = inventoryData.find(i => i.id === itemId);
-      if (item) {
-        item.real = Math.max(0, (item.real || 0) + change);
-        renderView();
-        updateStats();
-        autoSave();
-      }
-    }
-
-    function handleSearch() {
-      const searchTerm = $('searchInput').value.toLowerCase();
-      const estadoFilter = $('estadoFilter').value;
-      const existenciasMin = parseFloat($('existenciasMin').value) || 0;
-      const existenciasMax = parseFloat($('existenciasMax').value) || Infinity;
-      const diferenciaFilter = $('diferenciaFilter').value;
-
-      const base = inventoryData.filter(item => {
-        const matchesSearch = item.codigo.toLowerCase().includes(searchTerm) || item.descripcion.toLowerCase().includes(searchTerm);
-        const matchesEstado = !estadoFilter || item.estado === estadoFilter;
-        const matchesExistencias = item.existencias >= existenciasMin && item.existencias <= existenciasMax;
-        let matchesDiferencia = true;
-        if (diferenciaFilter) {
-          const d = item.real - item.existencias;
-          matchesDiferencia =
-            (diferenciaFilter === 'positive' && d > 0) ||
-            (diferenciaFilter === 'negative' && d < 0) ||
-            (diferenciaFilter === 'exact'    && d === 0);
-        }
-        return matchesSearch && matchesEstado && matchesExistencias && matchesDiferencia;
-      });
-
-      // aplicar filtro rápido
+    function handleSearch(){
+      const term = $('searchInput').value.toLowerCase();
+      // base por búsqueda rápida en código/descripcion
+      let base = inventoryData.filter(it =>
+        it.codigo.toLowerCase().includes(term) || it.descripcion.toLowerCase().includes(term)
+      );
+      // filtro avanzado (si está configurado)
+      base = base.filter(matchesAdvanced);
+      // filtro rápido (botones)
       switch (currentFilter) {
-        case 'checked': filteredData = base.filter(i => i.checked); break;
-        case 'unchecked': filteredData = base.filter(i => !i.checked); break;
-        case 'with-photos': filteredData = base.filter(i => i.imageData); break;
-        case 'with-comments': filteredData = base.filter(i => i.comentario && i.comentario.trim() !== ''); break;
+        case 'checked': filteredData = base.filter(i=>i.checked); break;
+        case 'unchecked': filteredData = base.filter(i=>!i.checked); break;
+        case 'with-photos': filteredData = base.filter(i=>i.imageData); break;
+        case 'with-comments': filteredData = base.filter(i=>i.comentario && i.comentario.trim()!==''); break;
         default: filteredData = base;
       }
       renderView();
     }
+    function filterItems(f,btn){ document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); if(btn) btn.classList.add('active'); currentFilter=f; handleSearch(); }
+
+    /* ====== FILTRO AVANZADO NUEVO ====== */
+    function onFieldChanged(){
+      const field = $('fieldSelect').value;
+      const opSel = $('operatorSelect');
+      const val1 = $('valueInput1'); const val2 = $('valueInput2');
+      const col2 = $('valueCol2'); const caseCol = $('caseCol');
+      // reset
+      opSel.innerHTML = ''; val1.value=''; val2.value=''; col2.style.display='none'; caseCol.style.display='none';
+
+      if (!field) { applyAdvancedFilters(); return; }
+
+      const type = getFieldType(field);
+      if (type === 'text') {
+        ['contiene','empieza_con','termina_con','igual','no_contiene'].forEach(op=>{
+          const o=document.createElement('option'); o.value=op; o.textContent=op.replace('_',' ');
+          opSel.appendChild(o);
+        });
+        $('valueInput1').type='text';
+        caseCol.style.display='block';
+      } else if (type === 'number') {
+        ['=','≠','>','≥','<','≤','entre'].forEach(op=>{
+          const o=document.createElement('option'); o.value=op; o.textContent=op;
+          opSel.appendChild(o);
+        });
+        $('valueInput1').type='number';
+      } else if (type === 'boolean') {
+        ['es'].forEach(op=>{ const o=document.createElement('option'); o.value=op; o.textContent='es'; opSel.appendChild(o); });
+        // reemplazar input por select sí/no
+        const v1 = $('valueInput1');
+        v1.type='text';
+        v1.replaceWith(booleanSelect('valueInput1'));
+      }
+      applyAdvancedFilters();
+    }
+
+    function booleanSelect(id){
+      const sel=document.createElement('select');
+      sel.id=id; sel.className='select';
+      sel.innerHTML='<option value="si">Sí</option><option value="no">No</option>';
+      sel.addEventListener('change', applyAdvancedFilters);
+      return sel;
+    }
+
+    function getFieldType(field){
+      if (['codigo','descripcion','estado','comentario'].includes(field)) return 'text';
+      if (['real','existencias','diferencia'].includes(field)) return 'number';
+      if (['checked','tiene_foto'].includes(field)) return 'boolean';
+      return 'text';
+    }
+
+    function matchesAdvanced(it){
+      const field = $('fieldSelect').value;
+      if (!field) return true;
+
+      const op = $('operatorSelect').value;
+      const caseInsensitive = $('caseInsensitive').checked;
+      const v1el = $('valueInput1'); // puede ser input o select (boolean)
+      const v2el = $('valueInput2');
+
+      let value1 = v1el ? v1el.value : '';
+      let value2 = v2el ? v2el.value : '';
+
+      let left;
+      if (field === 'diferencia') left = (it.real||0) - (it.existencias||0);
+      else if (field === 'tiene_foto') left = !!it.imageData;
+      else left = it[field];
+
+      const type = getFieldType(field);
+
+      if (type === 'text') {
+        const a = (left || '').toString();
+        const b = (value1 || '').toString();
+        const A = caseInsensitive ? a.toLowerCase() : a;
+        const B = caseInsensitive ? b.toLowerCase() : b;
+
+        switch (op) {
+          case 'contiene': return A.includes(B);
+          case 'no_contiene': return !A.includes(B);
+          case 'empieza_con': return A.startsWith(B);
+          case 'termina_con': return A.endsWith(B);
+          case 'igual': return A === B;
+          default: return true;
+        }
+      } else if (type === 'number') {
+        const L = Number(left)||0;
+        const N1 = parseFloat(value1);
+        const N2 = parseFloat(value2);
+        if (op === 'entre') {
+          $('valueCol2').style.display='block';
+          if (isNaN(N1) || isNaN(N2)) return true;
+          const min=Math.min(N1,N2), max=Math.max(N1,N2);
+          return L >= min && L <= max;
+        } else {
+          $('valueCol2').style.display='none';
+          if (isNaN(N1)) return true;
+          switch(op){
+            case '=': return L === N1;
+            case '≠': return L !== N1;
+            case '>': return L > N1;
+            case '≥': return L >= N1;
+            case '<': return L < N1;
+            case '≤': return L <= N1;
+            default: return true;
+          }
+        }
+      } else if (type === 'boolean') {
+        const want = (value1 === 'si');
+        if (field === 'checked') return !!it.checked === want;
+        if (field === 'tiene_foto') return !!it.imageData === want;
+        return true;
+      }
+      return true;
+    }
 
     function applyAdvancedFilters(){ handleSearch(); }
 
-    function clearAdvancedFilters() {
-      $('estadoFilter').value = '';
-      $('existenciasMin').value = '';
-      $('existenciasMax').value = '';
-      $('diferenciaFilter').value = '';
-      handleSearch();
-    }
-
-    function filterItems(filter, btn) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-      currentFilter = filter;
-      handleSearch();
+    function clearAdvancedFilters(){
+      $('fieldSelect').value='';
+      $('operatorSelect').innerHTML='';
+      // asegurar que valueInput1 es un input (por si fue reemplazado por select)
+      const current = $('valueInput1');
+      if (current && current.tagName.toLowerCase() !== 'input') {
+        const newInput = document.createElement('input');
+        newInput.id='valueInput1'; newInput.className='input'; newInput.placeholder='Valor';
+        newInput.addEventListener('input', debounce(applyAdvancedFilters, 150));
+        current.replaceWith(newInput);
+      } else if (current) {
+        current.value='';
+      }
+      $('valueInput2').value='';
+      $('valueCol2').style.display='none';
+      $('caseCol').style.display='none';
+      $('caseInsensitive').checked=true;
+      applyAdvancedFilters();
     }
 
     /* ===================== STATS ===================== */
-    function updateStats() {
-      const total = inventoryData.length;
-      const checked = inventoryData.filter(i => i.checked).length;
-      const withPhotos = inventoryData.filter(i => i.imageData).length;
-      const progress = total > 0 ? Math.round((checked / total) * 100) : 0;
-      const totalExistencias = inventoryData.reduce((s, i) => s + (i.existencias || 0), 0);
-      const totalReal = inventoryData.reduce((s, i) => s + (i.real || 0), 0);
-      const diferencia = totalReal - totalExistencias;
+    function updateStats(){
+      const total=inventoryData.length;
+      const checked=inventoryData.filter(i=>i.checked).length;
+      const withPhotos=inventoryData.filter(i=>i.imageData).length;
+      const progress=total?Math.round((checked/total)*100):0;
+      const totalExistencias=inventoryData.reduce((s,i)=>s+(i.existencias||0),0);
+      const totalReal=inventoryData.reduce((s,i)=>s+(i.real||0),0);
+      const diferencia=totalReal-totalExistencias;
 
-      $('totalItems').textContent = total;
-      $('totalExistencias').textContent = totalExistencias.toLocaleString();
-      $('totalReal').textContent = totalReal.toLocaleString();
-      const difEl = $('diferencia');
-      difEl.textContent = (diferencia > 0 ? '+' : '') + diferencia.toLocaleString();
-      difEl.className = 'stat-number ' + getDifferenceClass(diferencia);
-      $('checkedItems').textContent = checked;
-      $('withPhotos').textContent = withPhotos;
-      $('progressPercent').textContent = progress + '%';
+      $('totalItems').textContent=total;
+      $('totalExistencias').textContent=totalExistencias.toLocaleString();
+      $('totalReal').textContent=totalReal.toLocaleString();
+      const difEl=$('diferencia');
+      difEl.textContent=(diferencia>0?'+':'')+diferencia.toLocaleString();
+      difEl.className='stat-number '+getDifferenceClass(diferencia);
+      $('checkedItems').textContent=checked;
+      $('withPhotos').textContent=withPhotos;
+      $('progressPercent').textContent=progress+'%';
     }
 
     /* ===================== EXPORTAR ===================== */
-    function exportExcel() {
-      if (inventoryData.length === 0) return alert('No hay datos para exportar');
-      try {
-        if (typeof XLSX === 'undefined') throw new Error('Librería XLSX no cargada');
-        const fecha = new Date().toISOString().split('T')[0];
-        const suc = sucursalName ? `_${sucursalName.replace(/[^a-zA-Z0-9]/g,'_')}` : '';
-        const data = inventoryData.map(it => ({
-          SUCURSAL: sucursalName || 'Sin especificar',
-          CODIGO: it.codigo,
-          DESCRIPCION: it.descripcion,
-          ESTADO: it.estado,
-          ARCHIVO_FOTO: it.imageData ? `${it.codigo}.jpg` : '',
-          REAL: it.real,
-          EXISTENCIAS: it.existencias,
-          DIFERENCIA: it.real - it.existencias,
-          COMENTARIO: it.comentario,
-          VERIFICADO: it.checked ? 'SI' : 'NO',
-          TIENE_FOTO: it.imageData ? 'SI' : 'NO'
+    function exportExcel(){
+      if(!inventoryData.length) return alert('No hay datos para exportar');
+      try{
+        if(typeof XLSX==='undefined') throw new Error('Librería XLSX no cargada');
+        const fecha=new Date().toISOString().split('T')[0];
+        const suc=sucursalName?`_${sucursalName.replace(/[^a-zA-Z0-9]/g,'_')}`:'';
+        const data=inventoryData.map(it=>({
+          SUCURSAL:sucursalName||'Sin especificar',
+          CODIGO:it.codigo, DESCRIPCION:it.descripcion, ESTADO:it.estado,
+          ARCHIVO_FOTO: it.imageData?`${it.codigo}.jpg`:'',
+          REAL:it.real, EXISTENCIAS:it.existencias, DIFERENCIA:it.real-it.existencias,
+          COMENTARIO:it.comentario, VERIFICADO:it.checked?'SI':'NO', TIENE_FOTO:it.imageData?'SI':'NO'
         }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
-        XLSX.writeFile(wb, `inventario_progreso${suc}_${fecha}.xlsx`);
-        // Descargar fotos por separado
-        const photos = inventoryData.filter(i => i.imageData);
-        if (photos.length) {
-          let count = 0;
-          photos.forEach((p, idx) => {
-            setTimeout(() => {
-              downloadImageFile(p.imageData, `${p.codigo}.jpg`);
-              count++;
-              if (count === photos.length) showToast('Excel y fotos exportados ✅', 2000);
-            }, idx * 120);
-          });
-        } else {
-          showToast('Excel exportado ✅', 1600);
-        }
-      } catch (e) {
-        console.warn('Fallo Excel, usando CSV. Detalle:', e);
-        exportCSV();
-      }
+        const ws=XLSX.utils.json_to_sheet(data);
+        const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Inventario');
+        XLSX.writeFile(wb,`inventario_progreso${suc}_${fecha}.xlsx`);
+        const photos=inventoryData.filter(i=>i.imageData);
+        if(photos.length){ let c=0; photos.forEach((p,idx)=>setTimeout(()=>{ downloadImageFile(p.imageData,`${p.codigo}.jpg`); if(++c===photos.length) showToast('Excel y fotos exportados ✅',2000); }, idx*120)); }
+        else showToast('Excel exportado ✅',1600);
+      }catch(e){ console.warn('Fallo Excel, usando CSV:',e); exportCSV(); }
     }
 
-    function exportCSV() {
-      if (inventoryData.length === 0) return alert('No hay datos para exportar');
-      const fecha = new Date().toISOString().split('T')[0];
-      const suc = sucursalName ? `_${sucursalName.replace(/[^a-zA-Z0-9]/g,'_')}` : '';
-      const headers = ['SUCURSAL','CODIGO','DESCRIPCION','ESTADO','ARCHIVO_FOTO','REAL','EXISTENCIAS','DIFERENCIA','COMENTARIO','VERIFICADO','TIENE_FOTO'];
-      const escape = (v) => {
-        const s = (v ?? '').toString();
-        if (/[",\n;]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
-        return s;
-      };
-      const rows = inventoryData.map(it => [
-        sucursalName || 'Sin especificar',
-        it.codigo,
-        it.descripcion,
-        it.estado,
-        it.imageData ? `${it.codigo}.jpg` : '',
-        it.real,
-        it.existencias,
-        it.real - it.existencias,
-        it.comentario,
-        it.checked ? 'SI' : 'NO',
-        it.imageData ? 'SI' : 'NO'
-      ].map(escape).join(','));
-
-      const csv = [headers.join(','), ...rows].join('\n');
-      downloadFile(csv, `inventario_progreso${suc}_${fecha}.csv`, 'text/csv');
-      // Fotos
-      const photos = inventoryData.filter(i => i.imageData);
-      if (photos.length) {
-        photos.forEach((p, idx) => setTimeout(() => downloadImageFile(p.imageData, `${p.codigo}.jpg`), idx * 120));
-        showToast('CSV y fotos exportados ✅', 2000);
-      } else {
-        showToast('CSV exportado ✅', 1600);
-      }
+    function exportCSV(){
+      if(!inventoryData.length) return alert('No hay datos para exportar');
+      const fecha=new Date().toISOString().split('T')[0];
+      const suc=sucursalName?`_${sucursalName.replace(/[^a-zA-Z0-9]/g,'_')}`:'';
+      const headers=['SUCURSAL','CODIGO','DESCRIPCION','ESTADO','ARCHIVO_FOTO','REAL','EXISTENCIAS','DIFERENCIA','COMENTARIO','VERIFICADO','TIENE_FOTO'];
+      const esc=(v)=>{ const s=(v??'').toString(); return /[",\n;]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; };
+      const rows=inventoryData.map(it=>[
+        sucursalName||'Sin especificar', it.codigo, it.descripcion, it.estado,
+        it.imageData?`${it.codigo}.jpg`:'', it.real, it.existencias, it.real-it.existencias,
+        it.comentario, it.checked?'SI':'NO', it.imageData?'SI':'NO'
+      ].map(esc).join(','));
+      const csv=[headers.join(','),...rows].join('\n');
+      downloadFile(csv,`inventario_progreso${suc}_${fecha}.csv`,'text/csv');
+      const photos=inventoryData.filter(i=>i.imageData);
+      if(photos.length){ photos.forEach((p,idx)=>setTimeout(()=>downloadImageFile(p.imageData,`${p.codigo}.jpg`), idx*120)); showToast('CSV y fotos exportados ✅',2000); }
+      else showToast('CSV exportado ✅',1600);
     }
 
-    function downloadFile(content, filename, contentType) {
-      const blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename; a.style.visibility = 'hidden';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+    function downloadFile(content,filename,contentType){
+      const blob=new Blob([content],{type:contentType+';charset=utf-8;'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download=filename; a.style.visibility='hidden'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
-
-    function downloadImageFile(base64Data, filename) {
-      fetch(base64Data).then(res => res.blob()).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = filename; a.style.visibility = 'hidden';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    function downloadImageFile(base64Data,filename){
+      fetch(base64Data).then(res=>res.blob()).then(blob=>{
+        const url=URL.createObjectURL(blob); const a=document.createElement('a');
+        a.href=url; a.download=filename; a.style.visibility='hidden'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       });
     }
-
-    function downloadTemplate() {
-      const template = `CODIGO,DESCRIPCION,ESTADO,FOTO,REAL,EXISTENCIAS,COMENTARIO
+    function downloadTemplate(){
+      const t=`CODIGO,DESCRIPCION,ESTADO,FOTO,REAL,EXISTENCIAS,COMENTARIO
 P001,Smartphone Samsung Galaxy A54,ACTIVO,,0,15,
 P002,Auriculares Bluetooth Sony,ACTIVO,,0,8,Revisar empaque
 P003,Cargador iPhone Original,DESCONTINUADO,,0,0,Producto descontinuado
 P004,Funda Protectora Universal,ACTIVO,,0,25,Stock completo`;
-      downloadFile(template, 'plantilla_inventario.csv', 'text/csv');
+      downloadFile(t,'plantilla_inventario.csv','text/csv');
     }
 
-    /* ===================== COMPARTIR WHATSAPP ===================== */
-    function shareViaWhatsApp() {
-      if (inventoryData.length === 0) return alert('No hay datos para compartir');
-      const total = inventoryData.length;
-      const checked = inventoryData.filter(i => i.checked).length;
-      const withPhotos = inventoryData.filter(i => i.imageData).length;
-      const totalExistencias = inventoryData.reduce((s, i) => s + (i.existencias || 0), 0);
-      const totalReal = inventoryData.reduce((s, i) => s + (i.real || 0), 0);
-      const diferencia = totalReal - totalExistencias;
-      const progress = total ? Math.round((checked / total) * 100) : 0;
-
-      const mensaje = `📊 *REPORTE DE INVENTARIO*
-🏪 *Sucursal:* ${sucursalName || 'Sin especificar'}
+    /* ===================== WHATSAPP ===================== */
+    function shareViaWhatsApp(){
+      if(!inventoryData.length) return alert('No hay datos para compartir');
+      const total=inventoryData.length;
+      const checked=inventoryData.filter(i=>i.checked).length;
+      const withPhotos=inventoryData.filter(i=>i.imageData).length;
+      const totalExistencias=inventoryData.reduce((s,i)=>s+(i.existencias||0),0);
+      const totalReal=inventoryData.reduce((s,i)=>s+(i.real||0),0);
+      const diferencia=totalReal-totalExistencias;
+      const progress=total?Math.round((checked/total)*100):0;
+      const msg=`📊 *REPORTE DE INVENTARIO*
+🏪 *Sucursal:* ${sucursalName||'Sin especificar'}
 📅 *Fecha:* ${new Date().toLocaleDateString()}
 
 📦 *RESUMEN:*
@@ -847,24 +811,29 @@ P004,Funda Protectora Universal,ACTIVO,,0,25,Stock completo`;
 📈 *CANTIDADES:*
 • Existencias sistema: ${totalExistencias.toLocaleString()}
 • Real encontrado: ${totalReal.toLocaleString()}
-• Diferencia: ${diferencia > 0 ? '+' : ''}${diferencia.toLocaleString()}
+• Diferencia: ${diferencia>0?'+':''}${diferencia.toLocaleString()}
 
-${diferencia < 0 ? '⚠️ FALTANTE detectado' : diferencia > 0 ? '✅ SOBRANTE detectado' : '✅ Inventario EXACTO'}
+${diferencia<0?'⚠️ FALTANTE detectado':diferencia>0?'✅ SOBRANTE detectado':'✅ Inventario EXACTO'}
 
 *Inventario realizado con Sistema Digital* 📱`;
-
-      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-      if (confirm(`Se compartirá este reporte por WhatsApp:\n\n${mensaje}\n\n¿Continuar?`)) {
-        window.open(url, '_blank');
-        setTimeout(() => {
-          if (confirm('¿También quieres exportar los archivos completos (Excel/CSV y fotos)?')) exportExcel();
-        }, 800);
+      const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
+      if(confirm(`Se compartirá este reporte por WhatsApp:\n\n${msg}\n\n¿Continuar?`)){
+        window.open(url,'_blank');
+        setTimeout(()=>{ if(confirm('¿También quieres exportar los archivos completos (Excel/CSV y fotos)?')) exportExcel(); },800);
       }
     }
 
     /* ===================== INIT ===================== */
+    function initAdvancedDefaults(){
+      $('operatorSelect').innerHTML=''; // vacío hasta elegir campo
+      $('valueCol2').style.display='none';
+      $('caseCol').style.display='none';
+      $('caseInsensitive').checked=true;
+    }
+
     updateStats();
     autoLoad();
+    initAdvancedDefaults();
   </script>
 </body>
 </html>
