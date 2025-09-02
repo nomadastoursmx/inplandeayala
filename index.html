@@ -1,920 +1,870 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Inventario con Fotos</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 10px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 20px;
-            text-align: center;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .controls {
-            padding: 20px;
-            background: rgba(79, 172, 254, 0.1);
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .file-input-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .sucursal-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .sucursal-label {
-            font-weight: bold;
-            color: #667eea;
-            min-width: 120px;
-        }
-
-        .sucursal-input {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .sucursal-input:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .file-input {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-input input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-input-button {
-            display: block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .file-input-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .dropbox-container {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-        }
-
-        .dropbox-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .dropbox-input:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .load-dropbox-btn {
-            background: linear-gradient(135deg, #007ee5 0%, #0061a6 100%);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .load-dropbox-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 123, 229, 0.3);
-        }
-
-        .search-container {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .search-filter-select {
-            padding: 10px 20px;
-            border: 2px solid #4facfe;
-            border-radius: 12px;
-            font-size: 16px;
-            background: white;
-            color: #4facfe;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            min-width: 180px;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .search-filter-select:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .search-filter-select:hover {
-            background: #f0f9ff;
-            border-color: #3a8bfe;
-        }
-
-        .filters {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .view-btn {
-            padding: 10px 20px;
-            border: 2px solid #4facfe;
-            background: white;
-            color: #4facfe;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-        }
-
-        .view-btn.active {
-            background: #4facfe;
-            color: white;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
-            padding: 20px;
-            background: rgba(0, 242, 254, 0.05);
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #4facfe;
-        }
-
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            color: #666;
-            font-weight: 500;
-            margin-top: 5px;
-        }
-
-        .difference-negative {
-            color: #f44336 !important;
-        }
-
-        .difference-positive {
-            color: #4caf50 !important;
-        }
-
-        /* Tabla View */
-        .inventory-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        .inventory-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 8px;
-            text-align: left;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .inventory-table td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #e0e0e0;
-            vertical-align: top;
-        }
-
-        .inventory-table tr:hover {
-            background: rgba(79, 172, 254, 0.05);
-        }
-
-        .inventory-table tr.checked {
-            background: rgba(76, 175, 80, 0.1);
-        }
-
-        .numeric-input {
-            width: 80px;
-            padding: 8px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .numeric-input:focus {
-            outline: none;
-            border-color: #4facfe;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            justify-content: center;
-        }
-
-        .qty-btn {
-            background: #4facfe;
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .qty-btn:hover {
-            background: #3a8bfe;
-            transform: scale(1.1);
-        }
-
-        .qty-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Vista de Tarjetas */
-        .card-view {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .product-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: 3px solid transparent;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        .product-card.checked {
-            border-color: #4caf50;
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
-        }
-
-        .card-header {
-            position: relative;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .card-checkbox {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 30px;
-            height: 30px;
-            border: 2px solid white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .card-checkbox.checked {
-            background: #4caf50;
-            border-color: #4caf50;
-        }
-
-        .card-checkbox.checked::after {
-            content: '✓';
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .card-code {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .card-image {
-            width: 100%;
-            height: 200px;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .card-image img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .image-placeholder {
-            color: #999;
-            font-size: 3em;
-        }
-
-        .photo-upload {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: #4facfe;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .photo-upload:hover {
-            transform: scale(1.1);
-            background: #3a8bfe;
-        }
-
-        .photo-input {
-            display: none;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        .card-description {
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-            line-height: 1.4;
-        }
-
-        .card-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .detail-item {
-            background: rgba(79, 172, 254, 0.1);
-            padding: 8px 12px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .detail-label {
-            font-size: 0.8em;
-            color: #666;
-            margin-bottom: 2px;
-        }
-
-        .detail-value {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .real-input {
-            width: 100%;
-            padding: 8px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .real-input:focus {
-            outline: none;
-            border-color: #4facfe;
-        }
-
-        .existencias {
-            background: rgba(76, 175, 80, 0.1) !important;
-        }
-
-        .estado {
-            background: rgba(255, 152, 0, 0.1) !important;
-        }
-
-        .real-section {
-            background: rgba(33, 150, 243, 0.1) !important;
-        }
-
-        .comment-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            min-height: 80px;
-            resize: vertical;
-            transition: all 0.3s ease;
-        }
-
-        .comment-input:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin: 0 20px 20px 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .custom-checkbox {
-            width: 24px;
-            height: 24px;
-            border: 2px solid #667eea;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .custom-checkbox.checked {
-            background: #4caf50;
-            border-color: #4caf50;
-        }
-
-        .custom-checkbox.checked::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .table-image {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .table-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .table-photo-btn {
-            background: #4facfe;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .export-btn {
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            margin: 10px 5px;
-        }
-
-        .export-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 1.2em;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4facfe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .card-view {
-                grid-template-columns: 1fr;
-                padding: 10px;
-            }
-            
-            .product-card {
-                margin: 0 5px;
-            }
-            
-            .inventory-table th,
-            .inventory-table td {
-                padding: 8px 4px;
-                font-size: 14px;
-            }
-
-            .sucursal-container, .dropbox-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .sucursal-label {
-                min-width: auto;
-            }
-
-            .search-container {
-                flex-direction: column;
-            }
-
-            .search-filter-select {
-                min-width: auto;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Sistema de Inventario con Fotos</title>
+  <style>
+    /* ====== ESTILOS (sin cambios visuales mayores) ====== */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:10px}
+    .container{max-width:1400px;margin:0 auto;background:rgba(255,255,255,.95);border-radius:20px;box-shadow:0 20px 40px rgba(0,0,0,.2);overflow:hidden}
+    .header{background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);padding:20px;text-align:center;color:#fff}
+    .header h1{font-size:2em;margin-bottom:10px;text-shadow:0 2px 10px rgba(0,0,0,.3)}
+    .controls{padding:20px;background:rgba(79,172,254,.1);border-bottom:1px solid #e0e0e0}
+    .file-input-container{display:flex;flex-direction:column;gap:15px;margin-bottom:20px}
+    .sucursal-container{display:flex;align-items:center;gap:15px;margin-bottom:15px;background:#fff;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+    .sucursal-label{font-weight:bold;color:#667eea;min-width:120px}
+    .sucursal-input{flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:.3s}
+    .sucursal-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
+    .file-input{position:relative;display:inline-block;width:100%}
+    .file-input input[type=file]{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer}
+    .file-input-button{display:block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px;border-radius:12px;text-align:center;font-size:16px;font-weight:bold;transition:.3s;border:none;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+    .file-input-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+    .dropbox-container{background:#fff;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-bottom:15px}
+    .dropbox-input{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;margin-bottom:10px;transition:.3s}
+    .dropbox-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
+    .load-dropbox-btn{background:linear-gradient(135deg,#007ee5 0%,#0061a6 100%);color:#fff;padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:.3s}
+    .load-dropbox-btn:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,123,229,.3)}
+    .search-container{position:relative;margin-bottom:15px}
+    .search-input{width:100%;padding:15px;border:2px solid #e0e0e0;border-radius:12px;font-size:16px;transition:.3s;background:#fff}
+    .search-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    .filter-btn{padding:10px 20px;border:2px solid #667eea;background:#fff;color:#667eea;border-radius:25px;cursor:pointer;transition:.3s;font-weight:bold}
+    .filter-btn.active{background:#667eea;color:#fff}
+    .view-toggle{display:flex;gap:10px;margin-bottom:15px}
+    .view-btn,.filter-toggle-btn{padding:10px 20px;border:2px solid #4facfe;background:#fff;color:#4facfe;border-radius:12px;cursor:pointer;transition:.3s;font-weight:bold}
+    .view-btn.active,.filter-toggle-btn.active{background:#4facfe;color:#fff}
+    .filter-toggle-btn{border-color:#667eea;color:#667eea}
+    .filter-toggle-btn.active{background:#667eea;color:#fff}
+    .advanced-search{display:none;background:#fff;padding:15px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-top:10px;border:2px solid #667eea}
+    .advanced-search.active{display:block}
+    .search-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:15px}
+    .search-filter-group{display:flex;flex-direction:column;gap:5px}
+    .search-filter-label{font-weight:bold;color:#667eea;font-size:.9em}
+    .search-filter-input{padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px}
+    .search-filter-input:focus{outline:none;border-color:#667eea}
+    .clear-filters-btn{background:#ff6b6b;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px;transition:.3s}
+    .clear-filters-btn:hover{background:#ff5252}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;padding:20px;background:rgba(0,242,254,.05)}
+    .stat-card{background:#fff;padding:20px;border-radius:15px;text-align:center;box-shadow:0 5px 15px rgba(0,0,0,.1);border-left:5px solid #4facfe}
+    .stat-number{font-size:2em;font-weight:bold;color:#667eea}
+    .stat-label{color:#666;font-weight:500;margin-top:5px}
+    .difference-negative{color:#f44336!important}
+    .difference-positive{color:#4caf50!important}
+    .inventory-table{width:100%;border-collapse:collapse;margin:20px 0}
+    .inventory-table th{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px 8px;text-align:left;font-weight:bold;position:sticky;top:0;z-index:10}
+    .inventory-table td{padding:12px 8px;border-bottom:1px solid #e0e0e0;vertical-align:top}
+    .inventory-table tr:hover{background:rgba(79,172,254,.05)}
+    .inventory-table tr.checked{background:rgba(76,175,80,.1)}
+    .real-input-container,.numeric-input-container{display:flex;align-items:center;gap:5px;justify-content:center}
+    .real-input,.numeric-input{width:60px;padding:8px;border:2px solid #e0e0e0;border-radius:6px;text-align:center;font-weight:bold;font-size:16px}
+    .real-input:focus,.numeric-input:focus{outline:none;border-color:#4facfe}
+    .quantity-btn{width:30px;height:30px;border:2px solid #4facfe;background:#4facfe;color:#fff;border-radius:50%;cursor:pointer;font-weight:bold;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s}
+    .quantity-btn:hover{background:#3a8bfe;transform:scale(1.1)}
+    .quantity-btn:active{transform:scale(.95)}
+    .card-view{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;padding:20px}
+    .product-card{background:#fff;border-radius:15px;box-shadow:0 8px 25px rgba(0,0,0,.1);overflow:hidden;transition:.3s;border:3px solid transparent}
+    .product-card:hover{transform:translateY(-5px);box-shadow:0 12px 35px rgba(0,0,0,.15)}
+    .product-card.checked{border-color:#4caf50;box-shadow:0 8px 25px rgba(76,175,80,.2)}
+    .card-header{position:relative;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px;text-align:center}
+    .card-checkbox{position:absolute;top:15px;right:15px;width:30px;height:30px;border:2px solid #fff;border-radius:8px;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.2)}
+    .card-checkbox.checked{background:#4caf50;border-color:#4caf50}
+    .card-checkbox.checked::after{content:'✓';color:#fff;font-weight:bold;font-size:16px}
+    .card-code{font-size:1.2em;font-weight:bold;margin-bottom:5px}
+    .card-image{width:100%;height:200px;background:#f8f9fa;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid #e0e0e0}
+    .card-image img{max-width:100%;max-height:100%;object-fit:cover;border-radius:8px}
+    .image-placeholder{color:#999;font-size:3em}
+    .photo-upload{position:absolute;bottom:10px;right:10px;background:#4facfe;color:#fff;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:18px;transition:.3s;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+    .photo-upload:hover{transform:scale(1.1);background:#3a8bfe}
+    .photo-input{display:none}
+    .card-body{padding:20px}
+    .card-description{font-weight:600;margin-bottom:15px;color:#333;line-height:1.4}
+    .card-details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px}
+    .detail-item{background:rgba(79,172,254,.1);padding:8px 12px;border-radius:8px;text-align:center}
+    .detail-label{font-size:.8em;color:#666;margin-bottom:2px}
+    .detail-value{font-weight:bold;color:#333}
+    .existencias{background:rgba(76,175,80,.1)!important}
+    .estado{background:rgba(255,152,0,.1)!important}
+    .real-section{background:rgba(33,150,243,.1)!important}
+    .comment-input{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;min-height:80px;resize:vertical;transition:.3s}
+    .comment-input:focus{outline:none;border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,.1)}
+    .table-container{overflow-x:auto;margin:0 20px 20px;border-radius:12px;box-shadow:0 5px 15px rgba(0,0,0,.1)}
+    .checkbox-container{display:flex;align-items:center;justify-content:center}
+    .custom-checkbox{width:24px;height:24px;border:2px solid #667eea;border-radius:6px;cursor:pointer;transition:.3s;position:relative}
+    .custom-checkbox.checked{background:#4caf50;border-color:#4caf50}
+    .custom-checkbox.checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-weight:bold;font-size:14px}
+    .table-image{width:60px;height:60px;object-fit:cover;border-radius:8px;background:#f8f9fa;display:flex;align-items:center;justify-content:center;position:relative}
+    .table-image img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+    .table-photo-btn{background:#4facfe;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:5px}
+    .export-btn{background:linear-gradient(135deg,#4caf50 0%,#45a049 100%);color:#fff;padding:12px 24px;border:none;border-radius:25px;cursor:pointer;font-weight:bold;transition:.3s;margin:10px 5px}
+    .export-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(76,175,80,.3)}
+    .no-data{text-align:center;padding:40px;color:#666;font-size:1.2em}
+    .loading{display:inline-block;width:20px;height:20px;border:3px solid #f3f3f3;border-top:3px solid #4facfe;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    @media (max-width:768px){
+      .card-view{grid-template-columns:1fr;padding:10px}
+      .product-card{margin:0 5px}
+      .inventory-table th,.inventory-table td{padding:8px 4px;font-size:14px}
+      .sucursal-container,.dropbox-container{flex-direction:column;align-items:stretch}
+      .sucursal-label{min-width:auto}
+      .view-toggle{flex-wrap:wrap}
+    }
+    .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:.3s;z-index:9999}
+    .toast.show{opacity:1}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📷 Sistema de Inventario Visual</h1>
-            <p>Gestiona tu inventario con fotos y comentarios</p>
-        </div>
-
-        <div class="controls">
-            <div class="file-input-container">
-                <div class="sucursal-container">
-                    <label class="sucursal-label">🏪 Sucursal:</label>
-                    <input type="text" id="sucursalInput" class="sucursal-input" 
-                           placeholder="Nombre de la sucursal">
-                </div>
-                
-                <div class="file-input">
-                    <input type="file" id="csvFile" accept=".csv" />
-                    <label for="csvFile" class="file-input-button">
-                        📁 Cargar archivo CSV local
-                    </label>
-                </div>
-
-                <div class="dropbox-container">
-                    <label style="font-weight: bold; color: #667eea; margin-bottom: 10px; display: block;">
-                        ☁️ Cargar desde Dropbox
-                    </label>
-                    <input type="text" id="dropboxUrl" class="dropbox-input" 
-                           placeholder="Pegar enlace de Dropbox CSV (ej: https://dropbox.com/s/abc123/inventario.csv?dl=0)">
-                    <button class="load-dropbox-btn" onclick="loadFromDropbox()">
-                        <span id="dropboxBtnText">🔗 Cargar desde Dropbox</span>
-                    </button>
-                </div>
-                
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="export-btn" onclick="exportProgress()">💾 Exportar Progreso</button>
-                    <button class="export-btn" onclick="shareViaWhatsApp()" style="background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);">📱 Compartir por WhatsApp</button>
-                    <button class="export-btn" onclick="downloadTemplate()" style="background: linear-gradient(135deg, #ff7b7b 0%, #ff6b6b 100%);">📄 Descargar Plantilla</button>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
-                <div class="view-toggle">
-                    <button class="view-btn active" onclick="switchView('cards')">🎴 Vista Tarjetas</button>
-                    <button class="view-btn" onclick="switchView('table')">📊 Vista Tabla</button>
-                </div>
-                
-                <select class="search-filter-select" id="searchFilter" onchange="handleSearch()">
-                    <option value="all">🔍 Buscar en todo</option>
-                    <option value="codigo">📦 Solo códigos</option>
-                    <option value="descripcion">📝 Solo descripción</option>
-                    <option value="estado">⚡ Solo estado</option>
-                    <option value="comentario">💬 Solo comentarios</option>
-                </select>
-            </div>
-
-            <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por código, descripción...">
-            </div>
-
-            <div class="filters">
-                <button class="filter-btn active" onclick="filterItems('all')">Todos</button>
-                <button class="filter-btn" onclick="filterItems('checked')">Verificados</button>
-                <button class="filter-btn" onclick="filterItems('unchecked')">Pendientes</button>
-                <button class="filter-btn" onclick="filterItems('with-photos')">Con Fotos</button>
-                <button class="filter-btn" onclick="filterItems('with-comments')">Con Comentarios</button>
-            </div>
-        </div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalItems">0</div>
-                <div class="stat-label">Total Productos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalExistencias">0</div>
-                <div class="stat-label">Total Existencias</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalReal">0</div>
-                <div class="stat-label">Total Real</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="diferencia">0</div>
-                <div class="stat-label">Diferencia</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="checkedItems">0</div>
-                <div class="stat-label">Verificados</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="withPhotos">0</div>
-                <div class="stat-label">Con Fotos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="progressPercent">0%</div>
-                <div class="stat-label">Progreso</div>
-            </div>
-        </div>
-
-        <div id="inventoryContainer">
-            <div class="no-data">
-                <h3>📋 Sin datos</h3>
-                <p>Carga un archivo CSV para comenzar</p>
-                <p style="margin-top: 15px; font-size: 0.9em; color: #999;">
-                    Formato: CODIGO, DESCRIPCION, ESTADO, FOTO, REAL, EXISTENCIAS, COMENTARIO<br>
-                    💡 Tip: El campo "Real" es para registrar el inventario físico encontrado
-                </p>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>📷 Sistema de Inventario Visual</h1>
+      <p>Gestiona tu inventario con fotos y comentarios</p>
     </div>
 
-    <script>
-        let inventoryData = [];
-        let filteredData = [];
-        let currentFilter = 'all';
-        let currentView = 'cards';
-        let sucursalName = '';
+    <div class="controls">
+      <div class="file-input-container">
+        <div class="sucursal-container">
+          <label class="sucursal-label">🏪 Sucursal:</label>
+          <input type="text" id="sucursalInput" class="sucursal-input" placeholder="Nombre de la sucursal" />
+        </div>
 
-        document.getElementById('csvFile').addEventListener('change', handleFileUpload);
-        document.getElementById('searchInput').addEventListener('input', handleSearch);
-        document.getElementById('sucursalInput').addEventListener('input', function(e) {
-            sucursalName = e.target.value;
-            autoSave();
+        <div class="file-input">
+          <input type="file" id="csvFile" accept=".csv" />
+          <label for="csvFile" class="file-input-button">📁 Cargar archivo CSV local</label>
+        </div>
+
+        <div class="dropbox-container">
+          <label style="font-weight:bold;color:#667eea;margin-bottom:10px;display:block;">☁️ Cargar desde Dropbox</label>
+          <input type="text" id="dropboxUrl" class="dropbox-input" placeholder="Pegar enlace de Dropbox CSV (ej: https://dropbox.com/s/abc123/inventario.csv?dl=0)" />
+          <button class="load-dropbox-btn" onclick="loadFromDropbox()"><span id="dropboxBtnText">🔗 Cargar desde Dropbox</span></button>
+          <div style="font-size:.85em;color:#666;margin-top:5px;">💡 Tip: Cambia "?dl=0" por "?dl=1" para descarga directa</div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="export-btn" onclick="exportExcel()">📗 Exportar a Excel</button>
+          <button class="export-btn" onclick="exportCSV()" style="background:linear-gradient(135deg,#ffa000 0%,#ff8f00 100%);">🟧 Exportar CSV</button>
+          <button class="export-btn" onclick="shareViaWhatsApp()" style="background:linear-gradient(135deg,#25d366 0%,#128c7e 100%);">📱 Compartir por WhatsApp</button>
+          <button class="export-btn" onclick="downloadTemplate()" style="background:linear-gradient(135deg,#ff7b7b 0%,#ff6b6b 100%);">📄 Descargar Plantilla</button>
+          <button class="export-btn" onclick="resetProgress()" style="background:linear-gradient(135deg,#9e9e9e 0%,#757575 100%);">♻️ Reiniciar Progreso</button>
+        </div>
+      </div>
+
+      <div class="view-toggle">
+        <button class="view-btn active" onclick="switchView('cards', this)">🎴 Vista Tarjetas</button>
+        <button class="view-btn" onclick="switchView('table', this)">📊 Vista Tabla</button>
+        <button class="filter-toggle-btn" onclick="toggleAdvancedSearch(this)">🔍 Filtros Avanzados</button>
+      </div>
+
+      <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por código, descripción..." />
+      </div>
+
+      <div class="advanced-search" id="advancedSearch">
+        <div class="search-filters">
+          <div class="search-filter-group">
+            <label class="search-filter-label">Estado</label>
+            <select class="search-filter-input" id="estadoFilter">
+              <option value="">Todos los estados</option>
+              <option value="ACTIVO">Activo</option>
+              <option value="DESCONTINUADO">Descontinuado</option>
+              <option value="AGOTADO">Agotado</option>
+            </select>
+          </div>
+          <div class="search-filter-group">
+            <label class="search-filter-label">Existencias (desde)</label>
+            <input type="number" class="search-filter-input" id="existenciasMin" placeholder="0" min="0" />
+          </div>
+          <div class="search-filter-group">
+            <label class="search-filter-label">Existencias (hasta)</label>
+            <input type="number" class="search-filter-input" id="existenciasMax" placeholder="1000" min="0" />
+          </div>
+          <div class="search-filter-group">
+            <label class="search-filter-label">Diferencia</label>
+            <select class="search-filter-input" id="diferenciaFilter">
+              <option value="">Todas</option>
+              <option value="positive">Sobrantes (+)</option>
+              <option value="negative">Faltantes (-)</option>
+              <option value="exact">Exactos (0)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <button class="clear-filters-btn" onclick="clearAdvancedFilters()">🗑️ Limpiar Filtros</button>
+          <span style="font-size:.8em;color:#666;">Los filtros se aplican automáticamente</span>
+        </div>
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterItems('all', this)">Todos</button>
+        <button class="filter-btn" onclick="filterItems('checked', this)">Verificados</button>
+        <button class="filter-btn" onclick="filterItems('unchecked', this)">Pendientes</button>
+        <button class="filter-btn" onclick="filterItems('with-photos', this)">Con Fotos</button>
+        <button class="filter-btn" onclick="filterItems('with-comments', this)">Con Comentarios</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card"><div class="stat-number" id="totalItems">0</div><div class="stat-label">Total Productos</div></div>
+      <div class="stat-card"><div class="stat-number" id="totalExistencias">0</div><div class="stat-label">Total Existencias</div></div>
+      <div class="stat-card"><div class="stat-number" id="totalReal">0</div><div class="stat-label">Total Real</div></div>
+      <div class="stat-card"><div class="stat-number" id="diferencia">0</div><div class="stat-label">Diferencia</div></div>
+      <div class="stat-card"><div class="stat-number" id="checkedItems">0</div><div class="stat-label">Verificados</div></div>
+      <div class="stat-card"><div class="stat-number" id="withPhotos">0</div><div class="stat-label">Con Fotos</div></div>
+      <div class="stat-card"><div class="stat-number" id="progressPercent">0%</div><div class="stat-label">Progreso</div></div>
+    </div>
+
+    <div id="inventoryContainer">
+      <div class="no-data">
+        <h3>📋 Sin datos</h3>
+        <p>Carga un archivo CSV para comenzar</p>
+        <p style="margin-top:15px;font-size:.9em;color:#999;">
+          Formato: CODIGO, DESCRIPCION, ESTADO, FOTO, REAL, EXISTENCIAS, COMENTARIO<br />
+          💡 Tip: El campo "Real" es para registrar el inventario físico encontrado
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- SheetJS para exportar a Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    /* ===================== ESTADO ===================== */
+    let inventoryData = [];
+    let filteredData = [];
+    let currentFilter = 'all';
+    let currentView = 'cards';
+    let sucursalName = '';
+    const LS_KEY = 'inventoryAppDataV1';
+
+    /* ===================== HELPERS ===================== */
+    const $ = (id) => document.getElementById(id);
+    const showToast = (msg, ms = 1800) => {
+      const el = $('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), ms);
+    };
+
+    const debounce = (fn, delay = 220) => {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), delay);
+      };
+    };
+
+    /* ===================== EVENTOS ===================== */
+    $('csvFile').addEventListener('change', handleFileUpload);
+    $('searchInput').addEventListener('input', debounce(handleSearch, 200));
+    $('sucursalInput').addEventListener('input', (e) => {
+      sucursalName = e.target.value;
+      autoSave();
+    });
+    $('estadoFilter').addEventListener('change', applyAdvancedFilters);
+    $('existenciasMin').addEventListener('input', applyAdvancedFilters);
+    $('existenciasMax').addEventListener('input', applyAdvancedFilters);
+    $('diferenciaFilter').addEventListener('change', applyAdvancedFilters);
+
+    /* ===================== LOCALSTORAGE ===================== */
+    function autoSave() {
+      if (inventoryData.length === 0) return;
+      try {
+        // No guardamos las fotos para evitar superar la cuota
+        const slim = inventoryData.map(({ imageData, ...rest }) => rest);
+        const payload = {
+          sucursal: sucursalName,
+          data: slim,
+          ts: Date.now(),
+          ui: { currentFilter, currentView }
+        };
+        localStorage.setItem(LS_KEY, JSON.stringify(payload));
+        // No es blocking
+      } catch (e) {
+        console.warn('No se pudo guardar progreso:', e);
+      }
+    }
+
+    function autoLoad() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const payload = JSON.parse(raw);
+        sucursalName = payload.sucursal || '';
+        $('sucursalInput').value = sucursalName;
+        inventoryData = (payload.data || []).map((it, i) => ({ ...it, id: it.id ?? (i + 1), imageData: null }));
+        currentFilter = payload.ui?.currentFilter || 'all';
+        currentView = payload.ui?.currentView || 'cards';
+        filteredData = [...inventoryData];
+        renderView();
+        updateStats();
+        showToast('Progreso cargado ✅');
+      } catch (e) {
+        console.warn('No se pudo cargar progreso:', e);
+      }
+    }
+
+    function resetProgress() {
+      if (!confirm('Esto borrará el progreso guardado (no tus archivos). ¿Continuar?')) return;
+      try {
+        localStorage.removeItem(LS_KEY);
+      } catch {}
+      inventoryData = [];
+      filteredData = [];
+      renderView();
+      updateStats();
+      showToast('Progreso reiniciado');
+    }
+
+    /* ===================== DROPBOX CSV ===================== */
+    function loadFromDropbox() {
+      const url = $('dropboxUrl').value.trim();
+      if (!url) return alert('Pega un enlace de Dropbox válido');
+      let downloadUrl = url;
+      if (url.includes('dropbox.com') && url.includes('?dl=0')) downloadUrl = url.replace('?dl=0', '?dl=1');
+      else if (url.includes('dropbox.com') && !url.includes('?dl=')) downloadUrl = url + '?dl=1';
+
+      const btnText = $('dropboxBtnText');
+      const original = btnText.innerHTML;
+      btnText.innerHTML = '<span class="loading"></span> Cargando...';
+
+      fetch(downloadUrl,{method:'GET',mode:'cors'})
+        .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+        .then(csv => {
+          btnText.innerHTML = original;
+          parseCSV(csv);
+          showToast('Archivo Dropbox cargado ✅');
+        })
+        .catch(err => {
+          btnText.innerHTML = original;
+          console.error(err);
+          alert('⚠ Error al cargar el archivo Dropbox.\n\nVerifica:\n• Enlace correcto y público\n• Termina en ?dl=1\n• Intenta otro navegador\n\n'+err.message);
         });
+    }
 
-        // Auto-guardado en localStorage
-        function autoSave() {
-            if (inventoryData.length === 0) return;
-            
-            const progressData = {
-                sucursal: sucursalName,
-                inventoryData: inventoryData,
-                lastSaved: new Date().toISOString(),
-                filters: {
-                    currentFilter: currentFilter,
-                    currentView: currentView
-                }
-            };
-            
-            try {
-                // Note: In Claude.ai artifacts, localStorage is not available
-                console.log('Auto-save data prepared:', progressData);
-            } catch (error) {
-                console.warn('No se pudo guardar automáticamente:', error);
-            }
+    /* ===================== CSV PARSER ROBUSTO ===================== */
+    function detectDelimiter(headerLine) {
+      const commas = (headerLine.match(/,/g) || []).length;
+      const semis  = (headerLine.match(/;/g) || []).length;
+      return semis > commas ? ';' : ',';
+    }
+
+    function splitCSVRow(row, delim) {
+      const out = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') {
+          if (inQuotes && row[i+1] === '"') { cur += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === delim && !inQuotes) {
+          out.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
         }
+      }
+      out.push(cur);
+      return out.map(s => s.trim());
+    }
 
-        // Auto-cargar al iniciar
-        function autoLoad() {
-            try {
-                // Note: In Claude.ai artifacts, localStorage is not available
-                console.log('Auto-load attempted');
-            } catch (error) {
-                console.warn('Error al cargar progreso automático:', error);
-            }
+    function parseCSV(text) {
+      const clean = text.replace(/\r/g, '').trim();
+      const lines = clean.split('\n').filter(Boolean);
+      if (lines.length < 2) return alert('El CSV requiere encabezados + al menos una fila de datos.');
+      const delim = detectDelimiter(lines[0]);
+
+      const headers = splitCSVRow(lines[0], delim).map(h => h.toUpperCase());
+      const idx = (name) => headers.indexOf(name);
+      const IDX = {
+        CODIGO: idx('CODIGO'),
+        DESCRIPCION: idx('DESCRIPCION'),
+        ESTADO: idx('ESTADO'),
+        FOTO: idx('FOTO'),
+        REAL: idx('REAL'),
+        EXISTENCIAS: idx('EXISTENCIAS'),
+        COMENTARIO: idx('COMENTARIO')
+      };
+
+      const missing = ['CODIGO','DESCRIPCION','ESTADO','REAL','EXISTENCIAS'].filter(k => IDX[k] === -1);
+      if (missing.length) {
+        alert('Faltan columnas obligatorias en el CSV: ' + missing.join(', '));
+        return;
+      }
+
+      inventoryData = [];
+      for (let i = 1; i < lines.length; i++) {
+        const row = splitCSVRow(lines[i], delim);
+        const get = (pos) => (pos >= 0 && pos < row.length) ? row[pos] : '';
+        const real = parseFloat(get(IDX.REAL).toString().replace(',', '.')) || 0;
+        const exis = parseFloat(get(IDX.EXISTENCIAS).toString().replace(',', '.')) || 0;
+
+        const item = {
+          id: i,
+          codigo: get(IDX.CODIGO) || '',
+          descripcion: get(IDX.DESCRIPCION) || '',
+          estado: get(IDX.ESTADO) || '',
+          foto: IDX.FOTO >= 0 ? get(IDX.FOTO) : '',
+          real: real,
+          existencias: exis,
+          comentario: IDX.COMENTARIO >= 0 ? get(IDX.COMENTARIO) : '',
+          checked: false,
+          imageData: null
+        };
+        inventoryData.push(item);
+      }
+      filteredData = [...inventoryData];
+      renderView();
+      updateStats();
+      autoSave();
+      showToast('CSV cargado ✅');
+    }
+
+    function handleFileUpload(ev) {
+      const file = ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => parseCSV(e.target.result);
+      reader.readAsText(file);
+    }
+
+    /* ===================== UI Y RENDER ===================== */
+    function switchView(view, btn) {
+      currentView = view;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderView();
+      autoSave();
+    }
+
+    function toggleAdvancedSearch(btn) {
+      const box = $('advancedSearch');
+      box.classList.toggle('active');
+      if (btn) btn.classList.toggle('active');
+    }
+
+    function renderView() {
+      if (currentView === 'cards') renderCards();
+      else renderTable();
+    }
+
+    function renderCards() {
+      const container = $('inventoryContainer');
+      if (filteredData.length === 0) {
+        container.innerHTML = `
+          <div class="no-data">
+            <h3>📋 ${inventoryData.length === 0 ? 'Sin datos' : 'No hay resultados'}</h3>
+            <p>${inventoryData.length === 0 ? 'Carga un archivo CSV para comenzar' : 'Intenta con otros filtros o términos de búsqueda'}</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="card-view">
+          ${filteredData.map(item => `
+            <div class="product-card ${item.checked ? 'checked' : ''}">
+              <div class="card-header">
+                <div class="card-checkbox ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})"></div>
+                <div class="card-code">${escapeHtml(item.codigo)}</div>
+              </div>
+
+              <div class="card-image">
+                ${item.imageData
+                  ? `<img src="${item.imageData}" alt="Producto ${escapeHtml(item.codigo)}">`
+                  : `<div class="image-placeholder">📷</div>`
+                }
+                <button class="photo-upload" onclick="uploadPhoto(${item.id})">📷</button>
+                <input type="file" class="photo-input" id="photo-${item.id}" accept="image/*" onchange="handlePhotoUpload(${item.id}, event)">
+              </div>
+
+              <div class="card-body">
+                <div class="card-description">${escapeHtml(item.descripcion)}</div>
+
+                <div class="card-details">
+                  <div class="detail-item estado">
+                    <div class="detail-label">Estado</div>
+                    <div class="detail-value">${escapeHtml(item.estado)}</div>
+                  </div>
+                  <div class="detail-item existencias">
+                    <div class="detail-label">Existencias</div>
+                    <div class="detail-value">${item.existencias}</div>
+                  </div>
+                  <div class="detail-item real-section">
+                    <div class="detail-label">Real</div>
+                    <div class="real-input-container">
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, -1)" title="Reducir cantidad">−</button>
+                      <input type="number" class="real-input" value="${item.real}" onchange="updateReal(${item.id}, this.value)" min="0" step="1">
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, 1)" title="Aumentar cantidad">+</button>
+                    </div>
+                  </div>
+                  <div class="detail-item">
+                    <div class="detail-label">Diferencia</div>
+                    <div class="detail-value ${getDifferenceClass(item.real - item.existencias)}">
+                      ${(item.real - item.existencias) > 0 ? '+' : ''}${item.real - item.existencias}
+                    </div>
+                  </div>
+                </div>
+
+                <textarea class="comment-input" placeholder="Agregar comentario o notas..." onchange="updateComment(${item.id}, this.value)" rows="3">${escapeHtml(item.comentario)}</textarea>
+              </div>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    function renderTable() {
+      const container = $('inventoryContainer');
+      if (filteredData.length === 0) {
+        container.innerHTML = `
+          <div class="no-data">
+            <h3>📋 ${inventoryData.length === 0 ? 'Sin datos' : 'No hay resultados'}</h3>
+            <p>${inventoryData.length === 0 ? 'Carga un archivo CSV para comenzar' : 'Intenta con otros filtros o términos de búsqueda'}</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="table-container">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th style="width:50px;">✓</th>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th style="width:80px;">Foto</th>
+                <th>Existencias</th>
+                <th>Real</th>
+                <th>Diferencia</th>
+                <th style="min-width:200px;">Comentarios</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredData.map(item => `
+                <tr class="${item.checked ? 'checked' : ''}">
+                  <td class="checkbox-container">
+                    <div class="custom-checkbox ${item.checked ? 'checked' : ''}" onclick="toggleCheck(${item.id})"></div>
+                  </td>
+                  <td><strong>${escapeHtml(item.codigo)}</strong></td>
+                  <td>${escapeHtml(item.descripcion)}</td>
+                  <td>${escapeHtml(item.estado)}</td>
+                  <td>
+                    <div class="table-image">
+                      ${item.imageData ? `<img src="${item.imageData}" alt="Producto">` : `<span style="color:#999;">📷</span>`}
+                    </div>
+                    <button class="table-photo-btn" onclick="uploadPhoto(${item.id})">📷</button>
+                    <input type="file" class="photo-input" id="photo-table-${item.id}" accept="image/*" onchange="handlePhotoUpload(${item.id}, event)">
+                  </td>
+                  <td><strong>${item.existencias}</strong></td>
+                  <td>
+                    <div class="numeric-input-container">
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, -1)" title="Reducir">−</button>
+                      <input type="number" class="numeric-input" value="${item.real}" onchange="updateReal(${item.id}, this.value)" min="0" step="1">
+                      <button class="quantity-btn" onclick="adjustQuantity(${item.id}, 1)" title="Aumentar">+</button>
+                    </div>
+                  </td>
+                  <td><strong class="${getDifferenceClass(item.real - item.existencias)}">${(item.real - item.existencias) > 0 ? '+' : ''}${item.real - item.existencias}</strong></td>
+                  <td><textarea class="comment-input" placeholder="Agregar comentario..." onchange="updateComment(${item.id}, this.value)" rows="2">${escapeHtml(item.comentario)}</textarea></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    function escapeHtml(s=''){
+      return s.replace(/[&<>"']/g,(m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    /* ===================== FILTROS ===================== */
+    function getDifferenceClass(difference) {
+      if (difference < 0) return 'difference-negative';
+      if (difference > 0) return 'difference-positive';
+      return '';
+    }
+
+    function uploadPhoto(itemId) {
+      const input = document.getElementById(`photo-${itemId}`) || document.getElementById(`photo-table-${itemId}`);
+      if (input) input.click();
+    }
+
+    function handlePhotoUpload(itemId, event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const item = inventoryData.find(i => i.id === itemId);
+        if (item) {
+          item.imageData = e.target.result;
+          renderView();
+          updateStats();
+          // No autosave de fotos por cuota
         }
+      };
+      reader.readAsDataURL(file);
+    }
 
-        // Cargar desde Dropbox
-        function loadFromDropbox() {
-            const url = document.getElementById('dropboxUrl').value.trim();
-            if (!url) {
-                alert('Por favor, pega un enlace de Dropbox válido');
-                return;
-            }
+    function toggleCheck(itemId) {
+      const item = inventoryData.find(i => i.id === itemId);
+      if (item) {
+        item.checked = !item.checked;
+        renderView();
+        updateStats();
+        autoSave();
+      }
+    }
 
-            // Convertir enlace de Dropbox para descarga directa
-            let downloadUrl = url;
-            
-            // Nuevo formato de Dropbox (/scl/fi/)
-            if (url.includes('/scl/fi/') && url.includes('?rlkey=')) {
-                downloadUrl = url.replace('?dl=0', '&dl=1').replace('&dl=0', '&dl=1');
-                if (!downloadUrl.includes('&dl=1')) {
-                    downloadUrl += '&dl=1';
-                }
-            }
-            // Formato anterior de Dropbox
-            else if (url.includes('dropbox.com') && url.includes('?dl=0')) {
-                downloadUrl = url.replace('?dl=0', '?dl=1');
-            } else if (url.includes('dropbox.com') && !url.includes('?dl=')) {
-                downloadUrl = url + '?dl=1';
-            }
+    function updateComment(itemId, comment) {
+      const item = inventoryData.find(i => i.id === itemId);
+      if (item) {
+        item.comentario = comment;
+        autoSave();
+      }
+    }
 
-            console.log('URL original:', url);
-            console.log('URL de descarga:', downloadUrl);
+    function updateReal(itemId, value) {
+      const item = inventoryData.find(i => i.id === itemId);
+      if (item) {
+        item.real = Math.max(0, parseFloat(value) || 0);
+        renderView();
+        updateStats();
+        autoSave();
+      }
+    }
 
-            const btnText = document.getElementById('dropboxBtnText');
-            const originalText = btnText.innerHTML;
-            btnText.innerHTML = '<span class="loading"></span> Cargando...';
+    function adjustQuantity(itemId, change) {
+      const item = inventoryData.find(i => i.id === itemId);
+      if (item) {
+        item.real = Math.max(0, (item.real || 0) + change);
+        renderView();
+        updateStats();
+        autoSave();
+      }
+    }
 
-            fetch(downloadUrl, {
-                method: 'GET',
-                mode: 'cors',
-            })
-            .then(response => {
-                console.log('Respuesta:', response.status, response.statusText);
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
-                }
-                return response.text();
-            })
-            .then(csv => {
-                console.log('CSV cargado, longitud:', csv.length);
-                btnText.innerHTML = originalText;
-                parseCSV(csv);
-                alert('✅ Archivo cargado exitosamente desde Dropbox!');
-            })
-            .catch(error => {
-                btnText.innerHTML = originalText;
-                console.error('Error detallado:', error);
-                
-                let errorMessage = '❌ Error al cargar el archivo desde Dropbox.\n\n';
-                
-                if (url.includes('/scl/fi/')) {
-                    errorMessage += '📝 Para enlaces nuevos de Dropbox (/scl/fi/):\n';
-                    errorMessage += '1. Asegúrate que el enlace termine en "&dl=
+    function handleSearch() {
+      const searchTerm = $('searchInput').value.toLowerCase();
+      const estadoFilter = $('estadoFilter').value;
+      const existenciasMin = parseFloat($('existenciasMin').value) || 0;
+      const existenciasMax = parseFloat($('existenciasMax').value) || Infinity;
+      const diferenciaFilter = $('diferenciaFilter').value;
+
+      const base = inventoryData.filter(item => {
+        const matchesSearch = item.codigo.toLowerCase().includes(searchTerm) || item.descripcion.toLowerCase().includes(searchTerm);
+        const matchesEstado = !estadoFilter || item.estado === estadoFilter;
+        const matchesExistencias = item.existencias >= existenciasMin && item.existencias <= existenciasMax;
+        let matchesDiferencia = true;
+        if (diferenciaFilter) {
+          const d = item.real - item.existencias;
+          matchesDiferencia =
+            (diferenciaFilter === 'positive' && d > 0) ||
+            (diferenciaFilter === 'negative' && d < 0) ||
+            (diferenciaFilter === 'exact'    && d === 0);
+        }
+        return matchesSearch && matchesEstado && matchesExistencias && matchesDiferencia;
+      });
+
+      // aplicar filtro rápido
+      switch (currentFilter) {
+        case 'checked': filteredData = base.filter(i => i.checked); break;
+        case 'unchecked': filteredData = base.filter(i => !i.checked); break;
+        case 'with-photos': filteredData = base.filter(i => i.imageData); break;
+        case 'with-comments': filteredData = base.filter(i => i.comentario && i.comentario.trim() !== ''); break;
+        default: filteredData = base;
+      }
+      renderView();
+    }
+
+    function applyAdvancedFilters(){ handleSearch(); }
+
+    function clearAdvancedFilters() {
+      $('estadoFilter').value = '';
+      $('existenciasMin').value = '';
+      $('existenciasMax').value = '';
+      $('diferenciaFilter').value = '';
+      handleSearch();
+    }
+
+    function filterItems(filter, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      currentFilter = filter;
+      handleSearch();
+    }
+
+    /* ===================== STATS ===================== */
+    function updateStats() {
+      const total = inventoryData.length;
+      const checked = inventoryData.filter(i => i.checked).length;
+      const withPhotos = inventoryData.filter(i => i.imageData).length;
+      const progress = total > 0 ? Math.round((checked / total) * 100) : 0;
+      const totalExistencias = inventoryData.reduce((s, i) => s + (i.existencias || 0), 0);
+      const totalReal = inventoryData.reduce((s, i) => s + (i.real || 0), 0);
+      const diferencia = totalReal - totalExistencias;
+
+      $('totalItems').textContent = total;
+      $('totalExistencias').textContent = totalExistencias.toLocaleString();
+      $('totalReal').textContent = totalReal.toLocaleString();
+      const difEl = $('diferencia');
+      difEl.textContent = (diferencia > 0 ? '+' : '') + diferencia.toLocaleString();
+      difEl.className = 'stat-number ' + getDifferenceClass(diferencia);
+      $('checkedItems').textContent = checked;
+      $('withPhotos').textContent = withPhotos;
+      $('progressPercent').textContent = progress + '%';
+    }
+
+    /* ===================== EXPORTAR ===================== */
+    function exportExcel() {
+      if (inventoryData.length === 0) return alert('No hay datos para exportar');
+      try {
+        if (typeof XLSX === 'undefined') throw new Error('Librería XLSX no cargada');
+        const fecha = new Date().toISOString().split('T')[0];
+        const suc = sucursalName ? `_${sucursalName.replace(/[^a-zA-Z0-9]/g,'_')}` : '';
+        const data = inventoryData.map(it => ({
+          SUCURSAL: sucursalName || 'Sin especificar',
+          CODIGO: it.codigo,
+          DESCRIPCION: it.descripcion,
+          ESTADO: it.estado,
+          ARCHIVO_FOTO: it.imageData ? `${it.codigo}.jpg` : '',
+          REAL: it.real,
+          EXISTENCIAS: it.existencias,
+          DIFERENCIA: it.real - it.existencias,
+          COMENTARIO: it.comentario,
+          VERIFICADO: it.checked ? 'SI' : 'NO',
+          TIENE_FOTO: it.imageData ? 'SI' : 'NO'
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+        XLSX.writeFile(wb, `inventario_progreso${suc}_${fecha}.xlsx`);
+        // Descargar fotos por separado
+        const photos = inventoryData.filter(i => i.imageData);
+        if (photos.length) {
+          let count = 0;
+          photos.forEach((p, idx) => {
+            setTimeout(() => {
+              downloadImageFile(p.imageData, `${p.codigo}.jpg`);
+              count++;
+              if (count === photos.length) showToast('Excel y fotos exportados ✅', 2000);
+            }, idx * 120);
+          });
+        } else {
+          showToast('Excel exportado ✅', 1600);
+        }
+      } catch (e) {
+        console.warn('Fallo Excel, usando CSV. Detalle:', e);
+        exportCSV();
+      }
+    }
+
+    function exportCSV() {
+      if (inventoryData.length === 0) return alert('No hay datos para exportar');
+      const fecha = new Date().toISOString().split('T')[0];
+      const suc = sucursalName ? `_${sucursalName.replace(/[^a-zA-Z0-9]/g,'_')}` : '';
+      const headers = ['SUCURSAL','CODIGO','DESCRIPCION','ESTADO','ARCHIVO_FOTO','REAL','EXISTENCIAS','DIFERENCIA','COMENTARIO','VERIFICADO','TIENE_FOTO'];
+      const escape = (v) => {
+        const s = (v ?? '').toString();
+        if (/[",\n;]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+        return s;
+      };
+      const rows = inventoryData.map(it => [
+        sucursalName || 'Sin especificar',
+        it.codigo,
+        it.descripcion,
+        it.estado,
+        it.imageData ? `${it.codigo}.jpg` : '',
+        it.real,
+        it.existencias,
+        it.real - it.existencias,
+        it.comentario,
+        it.checked ? 'SI' : 'NO',
+        it.imageData ? 'SI' : 'NO'
+      ].map(escape).join(','));
+
+      const csv = [headers.join(','), ...rows].join('\n');
+      downloadFile(csv, `inventario_progreso${suc}_${fecha}.csv`, 'text/csv');
+      // Fotos
+      const photos = inventoryData.filter(i => i.imageData);
+      if (photos.length) {
+        photos.forEach((p, idx) => setTimeout(() => downloadImageFile(p.imageData, `${p.codigo}.jpg`), idx * 120));
+        showToast('CSV y fotos exportados ✅', 2000);
+      } else {
+        showToast('CSV exportado ✅', 1600);
+      }
+    }
+
+    function downloadFile(content, filename, contentType) {
+      const blob = new Blob([content], { type: contentType + ';charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.style.visibility = 'hidden';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadImageFile(base64Data, filename) {
+      fetch(base64Data).then(res => res.blob()).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.style.visibility = 'hidden';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    function downloadTemplate() {
+      const template = `CODIGO,DESCRIPCION,ESTADO,FOTO,REAL,EXISTENCIAS,COMENTARIO
+P001,Smartphone Samsung Galaxy A54,ACTIVO,,0,15,
+P002,Auriculares Bluetooth Sony,ACTIVO,,0,8,Revisar empaque
+P003,Cargador iPhone Original,DESCONTINUADO,,0,0,Producto descontinuado
+P004,Funda Protectora Universal,ACTIVO,,0,25,Stock completo`;
+      downloadFile(template, 'plantilla_inventario.csv', 'text/csv');
+    }
+
+    /* ===================== COMPARTIR WHATSAPP ===================== */
+    function shareViaWhatsApp() {
+      if (inventoryData.length === 0) return alert('No hay datos para compartir');
+      const total = inventoryData.length;
+      const checked = inventoryData.filter(i => i.checked).length;
+      const withPhotos = inventoryData.filter(i => i.imageData).length;
+      const totalExistencias = inventoryData.reduce((s, i) => s + (i.existencias || 0), 0);
+      const totalReal = inventoryData.reduce((s, i) => s + (i.real || 0), 0);
+      const diferencia = totalReal - totalExistencias;
+      const progress = total ? Math.round((checked / total) * 100) : 0;
+
+      const mensaje = `📊 *REPORTE DE INVENTARIO*
+🏪 *Sucursal:* ${sucursalName || 'Sin especificar'}
+📅 *Fecha:* ${new Date().toLocaleDateString()}
+
+📦 *RESUMEN:*
+• Total productos: ${total}
+• Productos verificados: ${checked} (${progress}%)
+• Con fotografías: ${withPhotos}
+
+📈 *CANTIDADES:*
+• Existencias sistema: ${totalExistencias.toLocaleString()}
+• Real encontrado: ${totalReal.toLocaleString()}
+• Diferencia: ${diferencia > 0 ? '+' : ''}${diferencia.toLocaleString()}
+
+${diferencia < 0 ? '⚠️ FALTANTE detectado' : diferencia > 0 ? '✅ SOBRANTE detectado' : '✅ Inventario EXACTO'}
+
+*Inventario realizado con Sistema Digital* 📱`;
+
+      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      if (confirm(`Se compartirá este reporte por WhatsApp:\n\n${mensaje}\n\n¿Continuar?`)) {
+        window.open(url, '_blank');
+        setTimeout(() => {
+          if (confirm('¿También quieres exportar los archivos completos (Excel/CSV y fotos)?')) exportExcel();
+        }, 800);
+      }
+    }
+
+    /* ===================== INIT ===================== */
+    updateStats();
+    autoLoad();
+  </script>
+</body>
+</html>
